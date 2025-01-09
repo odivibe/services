@@ -1,4 +1,5 @@
-<!-- 404 Error Content -->
+<?php require_once '../include/header.php'; ?>
+
 <section class="error-page">
     <h1>404 - Oops! Page Not Found</h1>
     <p>Sorry! We can't find the page you are looking for.</p>
@@ -14,4 +15,6 @@
     <!-- Go back to homepage link -->
     <p><a href="index.php">Go back to the homepage</a></p>
 </section>
+
+<?php require_once '../include/footer.php'; ?>
 

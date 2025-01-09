@@ -584,62 +584,71 @@ h2 {
     color: red;
 }
 
-/* registration massage code */
+/* General Styling for Message Container */
 .message-container {
-    margin: 60px;
-    padding: 10px; 
-}
-
-.message-container .msg-info {
-    width: 70%;
-    margin: 50px auto;
+    max-width: 600px;
+    margin: 20px auto;
     padding: 20px;
-    background-color: #f9f9f9; 
-    border: 1px solid #ddd; 
-    border-radius: 8px; 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-family: Arial, sans-serif;
+    color: #333;
 }
 
-.msg-info h4 {
-    margin-top: 0;
-    font-size: 1.5rem; 
-    color: #333; 
+/* Styling for Message Information */
+.msg-info {
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #155724; /* Dark green for success */
+    background-color: #d4edda; /* Light green background for success */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #c3e6cb; /* Green border */
 }
 
-.msg-info p {
-    font-size: 1rem;
-    color: #555; 
-    line-height: 1.6
+/* If there's an error message, add additional styling */
+.msg-info.error {
+    color: #721c24; /* Dark red for error */
+    background-color: #f8d7da; /* Light red background for error */
+    border: 1px solid #f5c6cb; /* Red border */
 }
 
-.msg-info hr {
-    margin: 15px 0;
-    border: 0;
-    height: 1px;
-    background: #ddd;
-}
-
-.msg-info form {
-    margin-top: 10px;
-}
-
-.resend-link {
-    display: inline-block;
+/* Styling for Resend Button */
+button#resend-button {
     padding: 10px 20px;
-    background-color: var(--accent-color-two); 
+    font-size: 16px;
     color: #fff;
-    font-size: 1rem;
-    text-transform: uppercase;
-    font-weight: bold;
+    background-color: #007bff;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
-.resend-link:hover {
-    background-color: var(--hover-color-two);
+/* Hover and Disabled States for Button */
+button#resend-button:hover {
+    background-color: #0056b3;
 }
+
+button#resend-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Styling for Maximum Attempts Message */
+p.max-attempts {
+    font-size: 16px;
+    color: #721c24; /* Dark red */
+    background-color: #f8d7da; /* Light red background */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #f5c6cb;
+    margin: 10px 0;
+}
+
 
 
 

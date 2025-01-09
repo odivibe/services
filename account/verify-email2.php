@@ -2,11 +2,10 @@
 session_start();
 require_once '../include/config.php';
 require_once '../include/db.php';
-require_once '../include/error-handler.php';
 
 if (isset($_GET['token'])) 
 {
-    echo $token = $_GET['token'];
+    $token = $_GET['token'];
 
     try 
     {
@@ -19,15 +18,12 @@ if (isset($_GET['token']))
         if (!$user) 
         {
             // Token is invalid or not found
-            $message_type = 
-                '<h4>Invalid token</h4>
-                <p>The verification token is invalid. Please check your link.</p>';
-            $_SESSION['show_resend_button'] = false;
-            $_SESSION['message_type'] = $message_type;
+            $_SESSION['message_type'] = 'invalid-token';
             header("Location: " . BASE_URL . "account/message-output-manager.php");
             exit();
         } 
 
+        // Token is valid, update email_verified status
         $user_id = $user['id'];
         $tokenExpiration = $user['token_expiration'];
         $currentTimestamp = time();
@@ -36,43 +32,43 @@ if (isset($_GET['token']))
         if ($currentTimestamp > $tokenExpiration) 
         {
             // Token has expired
-            $message_type = 
-                '<h4>Token has expired</h4>
-                <p>The verification link has expired.</p>';
-            $_SESSION['show_resend_button'] = true;
-            $_SESSION['message_type'] = $message_type;
+            $_SESSION['message_type'] = 'expired-token';
             $_SESSION['user_id'] = $user_id;
             header("Location: " . BASE_URL . "account/message-output-manager.php");
             exit();
         }
 
-        // update if token has not expired
         $stmt = $pdo->prepare("UPDATE users SET email_verified = 1, verification_token = NULL, token_expiration = NULL WHERE id = :id");
         $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
         $stmt->execute();
 
         // Set session message
-        $message_type = 
-            '<h4>Email Verified</h4>
-            <p>
-                Your email has been verified successfully. <a href="'. BASE_URL .'account/login.php" >
-                Login Here</a>
-            </p>';
-        $_SESSION['show_resend_button'] = false;
-        $_SESSION['message_type'] = $message_type;
+        $_SESSION['message_type'] = 'email-verified';
         $_SESSION['user_id'] = $user_id;
         header("Location: " . BASE_URL . "account/message-output-manager.php");
         exit();
     } 
     catch (PDOException $e) 
     {
-        handleError('An error occurred. Please try again later.', $e);
+        $message = "[" . date('Y-m-d H:i:s') . "] Database Error: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine() . PHP_EOL;
+
+        error_log($message, 3, '../errors/custom-error.log');
+
+        // emailAdmin($message);  // Notify admin
+
+        http_response_code(500);
+
+        require_once '../include/header.php';
+        require_once '../include/500.php';
+        require_once '../include/footer.php';
+
         exit();
     }
 } 
 else 
 {
-    handleError('Invalid token.');
+    $_SESSION['error'] = "Invalid token.";
+    header("Location: " . BASE_URL . "errors/error-message.php");
     exit();
 }
 

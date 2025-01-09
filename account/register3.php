@@ -4,6 +4,7 @@ require_once '../include/config.php';
 require_once '../include/db.php';
 require_once '../include/error-handler.php';
 require_once '../include/input-cleaner.php';
+require_once '../include/email-sender.php';
 
 // CSRF Token
 if (empty($_SESSION['csrf_token'])) 
@@ -146,19 +147,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
 
             $user_id = $pdo->lastInsertId(); // Last inserted user ID
 
+            // Send the verification email
             $verificationLink = BASE_URL . "account/verify-email.php?token=" . $verificationToken;
-            $subject = "Verify Your Email Address";
-            $body = "
-                <p>Dear $fname,</p>
-                <p>
-                    We have sent an email verification link. Please click the link below to verify your email 
-                    address:
-                </p>
-                <p><a href='" . $verificationLink . "'>" . $verificationLink . "</a></p>
-                <p>The link will expire in next 5 minutes.</p>
-                <p>Thanks.</p>";
-
-            $altBody = 'We have sent an email verification link. Please click the link below to verify your email address:\n' . $verificationLink . '\n\nThe link will expire in next 5 minutes. \n\nThanks.';
 
             $mail = new PHPMailer(true); 
             try 
@@ -174,13 +164,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
 
                 //Recipients
                 $mail->setFrom('no-reply@yourdomain.com', 'Your Website');
-                $mail->addAddress($email, $fname);
+                $mail->addAddress($email, $fname . ' ' . $lname);
 
                 // Content
                 $mail->isHTML(true);
-                $mail->Subject = $subject;
-                $mail->Body = $body;
-                $mail->AltBody = $altBody;
+                $mail->Subject = 'Email Confirmation';
+                $mail->Body =  
+                   "<p>Hi $fname,</p>
+                    <p>We have sent an email verification link.</p>
+                    <p>Please click the link below to verify your email:</p>
+                    <p><a href='" . $verificationLink . "'>" . $verificationLink . "</a></p>
+                    <p>Thanks.</p>";
+
+                $mail->AltBody = 'Dear ' . $fname . ',\n\nThank you for registering on our website. Please click the link below to verify your email address:\n' . $verificationLink . '\n\nBest regards,\nYour Website Team';
+
                 $mail->send();
             } 
             catch (Exception $e) 
@@ -190,10 +187,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
             }
 
             $message_type = 
-               '<h4>Thank you for registering.</h4>
-                <p>
-                    We have sent a verification link to <strong>' . $email . '</strong>. Please check your inbox or spam folder to verify your email.
-                </p>';
+                   '<h4>Thank you for registering.</h4>
+                    <p>
+                        We have sent a verification link to <strong>' . $email . '</strong>. Please check your inbox or spam folder to verify your email.
+                    </p>';
 
             // Set session variables after inserting data into the database
             $_SESSION['user_id'] = $user_id; 

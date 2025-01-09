@@ -4,7 +4,10 @@
 # Ensure .htaccess applies to the 'classified' folder
 RewriteBase /classified/
 
-ErrorDocument 400 errors/404.php
+# Custom Error Pages
+ErrorDocument 404 /errors/404.php
+#ErrorDocument 500 /500.php
+
 
 # Rewrite rule for category page
 #RewriteRule ^([a-zA-Z0-9-]+)/?$ services/category.php?slug=$1 [L,QSA]

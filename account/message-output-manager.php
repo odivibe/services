@@ -3,78 +3,85 @@ session_start();
 
 require_once '../include/config.php';
 
-// Default values
-$title = 'Notice';
-$message = 'An unexpected error occurred.';
+$messageType = $_SESSION['message_type'] ?? null;
+$showResendButton = $_SESSION['show_resend_button'] ?? false;
 
-$messageType = isset($_SESSION['message_type']) ? $_SESSION['message_type'] : '';
-$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : '';
-$email = isset($_SESSION['user_email']) ? $_SESSION['user_email'] : '';
-
-// Handle messages using switch-case
-switch ($messageType) 
-{
-    case 'email-sent': 
-        $title = 'Email Sent';
-        $message = 'We have sent a verification link to <strong>' . 
-            $email . '</strong>. Please check your inbox or spam folder to verify your email.';
-        break;
-
-    case 'email-verified':
-        $title = 'Email Verified';
-        $message = 'Your email has been verified successfully. <a href="'. BASE_URL .'account/login.php" >Login Here</a>';
-        break;
-
-    case 'expired-token':
-        $title = 'Verification Failed';
-        $message = 'The verification link has expired.';
-        break;
-
-    case 'invalid-token':
-        $title = 'Invalid Token';
-        $message = 'The verification token is invalid. Please check your link.';
-        break;
-
-    case 'email-resent-link':
-        $title = 'Email link resend';
-        $message = 'Verification token has been resend to your email, <strong>' . 
-            $email . '</strong>. Please check your inbox or spam folder to verify your email.';
-        break;
-
-    default:
-        $title = 'Notice';
-        $message = 'An unexpected error occurred.';
-        break;
-}
+// Clear session messages after displaying
+unset($_SESSION['message_type'], $_SESSION['show_resend_button']);
 
 ?>
 
 <?php require_once '../include/header.php'; ?>
+
 <div class="message-container">
-    <div class="msg-info" role="alert">
-        <h4><?= $title ?></h4>
-        <p><?= $message ?></p>
-        <hr>
-        
-        <!-- For resending verification link -->
-        <?php if ($messageType === 'expired-token' || $messageType === 'email-sent' || $messageType === 'email-resent-link'): ?>
-            <p>
-                Resend Verification Below.
-            </p>
-            <form method="POST" action="resend-verification.php">
-                <button type="submit" class="resend-link" name="resend-verification-code">
-                    Resend Verification Email
-                </button>
-            </form>
+
+    <div class="msg-info" id="message-output">
+        <?php if ($messageType): ?>
+            <p><?php echo $messageType; ?></p>
         <?php endif; ?>
     </div>
+
+    <!-- Resend Verification Button -->
+    <?php if ($showResendButton): ?>
+        <button id="resend-button">Resend Verification Email</button>
+    <?php endif; ?>
+
 </div>
 
-<?php
+<script>
+let clickCount = 0;
+const resendButton = document.getElementById('resend-button');
+const messageOutput = document.getElementById('message-output');
 
-// Clear session variables after displaying the message
-//unset($_SESSION['message_type']);
-//unset($_SESSION['user_email']);
+resendButton.addEventListener("click", function () 
+{
+    clickCount++;
 
-require_once '../include/footer.php';
-?>
+    // Disable the button after 3 clicks
+    if (clickCount >= 3) 
+    {
+        //resendButton.disabled = true;
+        resendButton.style.display = "none";
+        messageOutput.innerHTML = "Max Attempts Reached.";
+        return;
+    }
+
+    // Temporarily disable the button while processing
+    resendButton.disabled = true;
+    resendButton.textContent = "Processing...";
+
+    // Create an XMLHttpRequest object
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "resend-verification-email.php", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    xhr.onload = function () {
+        // Reset button state after the response is received
+        resendButton.disabled = false;
+        resendButton.textContent = "Resend Verification Email";
+
+        // Update the message output
+        if (xhr.status === 200) 
+        {
+            messageOutput.innerHTML = xhr.responseText;
+        } 
+        else 
+        {
+            messageOutput.innerHTML = "An error occurred while sending the verification email.";
+        }
+    };
+
+    xhr.onerror = function () {
+        // Handle network errors
+        messageOutput.innerHTML = "A network error occurred. Please try again later.";
+        resendButton.disabled = false;
+        resendButton.textContent = "Resend Verification Email";
+    };
+
+    // Send the request
+    xhr.send();
+});
+
+</script>
+
+<?php require_once '../include/footer.php'; ?>

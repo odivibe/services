@@ -1,0 +1,12 @@
+
+
+[2025-01-09 10:39:11] Error: SMTP Error: Could not connect to SMTP host. STARTTLS command failed | File: C:\xampp\htdocs\classified\vendor\phpmailer\phpmailer\src\PHPMailer.php | Line: 2248
+
+[2025-01-09 10:42:27] Error: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'services_classified.user' doesn't exist | File: C:\xampp\htdocs\classified\account\register.php | Line: 145
+
+[2025-01-09 11:06:25] Error: SMTP Error: Could not connect to SMTP host. STARTTLS command failed | File: C:\xampp\htdocs\classified\vendor\phpmailer\phpmailer\src\PHPMailer.php | Line: 2248
+
+[2025-01-09 11:19:08] Error: SMTP Error: Could not connect to SMTP host. STARTTLS command failed | File: C:\xampp\htdocs\classified\vendor\phpmailer\phpmailer\src\PHPMailer.php | Line: 2248
+
+[2025-01-09 15:44:34] Error: SMTP Error: Could not authenticate. | File: C:\xampp\htdocs\classified\vendor\phpmailer\phpmailer\src\PHPMailer.php | Line: 2261
+
