@@ -1866,8 +1866,8 @@ h3.socials-header {
 }
 
 .featured-img {
-    width: 100px;
-    height: auto;
+    width: 300px;
+    height: 200px;
     object-fit: cover;
     border-radius: 5px;
 }
