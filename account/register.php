@@ -1,9 +1,12 @@
 <?php
+
 session_start();
+
 require_once '../include/config.php';
 require_once '../include/db.php';
 require_once '../include/error-handler.php';
 require_once '../include/input-cleaner.php';
+require_once '../include/email-sender.php';
 
 // CSRF Token
 if (empty($_SESSION['csrf_token'])) 
@@ -114,7 +117,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
         exit();
     }
 
-
     // Check for errors
     foreach ($errors as $field => $message) 
     {
@@ -146,48 +148,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
 
             $user_id = $pdo->lastInsertId(); // Last inserted user ID
 
+            // Prepare and send verification email
             $verificationLink = BASE_URL . "account/verify-email.php?token=" . $verificationToken;
-            $subject = "Verify Your Email Address";
-            $body = "
-                <p>Dear $fname,</p>
-                <p>
-                    We have sent an email verification link. Please click the link below to verify your email 
-                    address:
-                </p>
-                <p><a href='" . $verificationLink . "'>" . $verificationLink . "</a></p>
-                <p>The link will expire in next 5 minutes.</p>
-                <p>Thanks.</p>";
 
-            $altBody = 'We have sent an email verification link. Please click the link below to verify your email address:\n' . $verificationLink . '\n\nThe link will expire in next 5 minutes. \n\nThanks.';
-
-            $mail = new PHPMailer(true); 
-            try 
-            {
-                //Server settings
-                $mail->isSMTP();
-                $mail->Host = 'sandbox.smtp.mailtrap.io';
-                $mail->SMTPAuth = true;
-                $mail->Username = '670c70f26f6810';
-                $mail->Password = 'd4b68560895d65'; 
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port = 465;
-
-                //Recipients
-                $mail->setFrom('no-reply@yourdomain.com', 'Your Website');
-                $mail->addAddress($email, $fname);
-
-                // Content
-                $mail->isHTML(true);
-                $mail->Subject = $subject;
-                $mail->Body = $body;
-                $mail->AltBody = $altBody;
-                $mail->send();
-            } 
-            catch (Exception $e) 
-            {
-                handleError("We couldn't send the email. Please try again later.", $e);
-                exit();
-            }
+            sendVerificationEmail($email, $fname, $verificationLink);
 
             $message_type = 
                '<h4>Thank you for registering.</h4>
@@ -195,10 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
                     We have sent a verification link to <strong>' . $email . '</strong>. Please check your inbox or spam folder to verify your email.
                 </p>';
 
-            // Set session variables after inserting data into the database
             $_SESSION['user_id'] = $user_id; 
-            $_SESSION['user_email'] = $email;
-            $_SESSION['logged_in'] = false;
             $_SESSION['message_type'] = $message_type;
             $_SESSION['show_resend_button'] = true;
             header("Location:" . BASE_URL . "account/message-output-manager.php");
@@ -313,6 +274,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
 document.addEventListener("DOMContentLoaded", function () 
 {
     const form = document.getElementById("signup_form");
+    const submitButton = document.getElementById("signup_submit");
     const errors = {}; // To track errors dynamically
 
     form.addEventListener("submit", function (e) 
@@ -386,6 +348,14 @@ document.addEventListener("DOMContentLoaded", function ()
         {
             e.preventDefault();
         }
+
+        //disable submit button after clicking if no errors
+        if (isValid) 
+        {
+            submitButton.disabled = true;
+            submitButton.style.cursor: 'notAllowed';
+        }
+        
     });
 
     // Function to show error

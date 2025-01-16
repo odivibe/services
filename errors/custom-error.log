@@ -10,3 +10,7 @@
 
 [2025-01-09 15:44:34] Error: SMTP Error: Could not authenticate. | File: C:\xampp\htdocs\classified\vendor\phpmailer\phpmailer\src\PHPMailer.php | Line: 2261
 
+[2025-01-10 15:13:53] Error: Could not send email: SMTP Error: Could not authenticate.SMTP server error: QUIT command failed | File: C:\xampp\htdocs\classified\account\login.php | Line: 141
+
+[2025-01-10 15:21:27] Error: Could not send email: SMTP Error: Could not authenticate.SMTP server error: QUIT command failed | File: C:\xampp\htdocs\classified\account\login.php | Line: 141
+

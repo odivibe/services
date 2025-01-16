@@ -1,16 +1,17 @@
 <?php
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require 'vendor/autoload.php'; // Ensure PHPMailer is installed via Composer
+require '../vendor/autoload.php'; // Include the Composer autoloader
 
-function sendEmail($recipientEmail, $recipientName, $subject, $htmlBody, $altBody) 
+function sendVerificationEmail($email, $fname, $verificationLink) 
 {
     $mail = new PHPMailer(true);
 
     try 
     {
-        // Server settings
+        // SMTP server configuration
         $mail->isSMTP();
         $mail->Host = 'sandbox.smtp.mailtrap.io';
         $mail->SMTPAuth = true;
@@ -19,24 +20,25 @@ function sendEmail($recipientEmail, $recipientName, $subject, $htmlBody, $altBod
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 465;
 
-        // Recipients
+        // Email settings
         $mail->setFrom('no-reply@yourdomain.com', 'Your Website');
-        $mail->addAddress($recipientEmail, $recipientName);
-
-        // Content
+        $mail->addAddress($email, $fname);
+        $mail->Subject = 'Verify Your Email Address';
         $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body = $htmlBody;
-        $mail->AltBody = $altBody;
+        $mail->Body = "
+            <p>Dear $fname,</p>
+            <p>Please click the link below to verify your email address:</p>
+            <p><a href='$verificationLink'>$verificationLink</a></p>
+            <p>The link will expire in 15 minutes.</p>
+            <p>Thanks,</p>
+            <p>Your Website Team</p>";
+        $mail->AltBody = "Please click the link below to verify your email address: $verificationLink. The link will expire in 15 minutes.";
 
         $mail->send();
-        $success = true;
-        return $success;
     } 
     catch (Exception $e) 
     {
-        handleError("We couldn't send the email. Please try again later.", $e);
-        exit();
+        throw new Exception('Could not send email: ' . $mail->ErrorInfo);
     }
 }
 

@@ -10,14 +10,11 @@ require_once '../include/config.php';
 
 <div class="message-container">
     <div class="msg-info" role="alert">
-        <p><?php echo $showMessage; ?></p>
+        <?php echo $showMessage; ?>
     </div>
 </div>
 
 <?php 
-
-// Clear session variables after displaying the message
-//unset($_SESSION['show_message']);
 
 require_once '../include/footer.php'; 
 

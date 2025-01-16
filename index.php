@@ -6,8 +6,7 @@ require_once  'include/config.php';
 require_once  'include/db.php';
 
 // Check if the user is logged in
-$isLoggedIn = isset($_SESSION['user_id']);
-
+//$isLoggedIn = isset($_SESSION['user_id']);
 
 // fetch categories
 $query = "SELECT * FROM categories";
@@ -16,7 +15,7 @@ $stmt->execute();
 $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // fetch services
-$sql = "SELECT s.id, s.title, s.description, s.slug, s.category_id, s.subcategory_id, s.price, s.is_negotiable, s.status, i.image_url 
+$sql = "SELECT s.id, s.title, s.description, s.slug, s.category_id, s.subcategory_id, s.price, s.is_negotiable, s.status, i.image_path 
         FROM services s
         LEFT JOIN service_images i ON s.id = i.service_id AND i.is_featured = 1
         WHERE s.status = 'approved'
@@ -119,17 +118,19 @@ $searchTarget = BASE_URL . "search.php?query={search_term_string}";
                 <div class="service-card">
                     <a href="<?php echo $slug; ?>">
                         <div class="service-img">
-                            <img src="<?php echo BASE_URL; ?><?php echo $service['image_url']; ?>" alt="<?php echo $service['title']; ?>">
+                            <img src="<?php echo BASE_URL; ?>uploads/services-images/<?php echo $service['image_path']; ?>" alt="<?php echo $service['title']; ?>">
                         </div>
                         <div class="service-text">
                             <h3><?php echo $service['title']; ?></h3>
                             <p class="price">
                                 <?php echo $service['price'] ? CURRENCY_TYPE_SYMBOLE . number_format($service['price'], 2) : 'Price on Request'; ?>
                             </p>
-                            <p><?php echo substr($service['description'], 0, 35); ?>...</p>
-                            <p class="negotiable <?php echo $service['is_negotiable'] ? 'yes' : 'no'; ?>">
-                                <?php echo $service['is_negotiable'] ? 'Negotiable' : 'Not Negotiable'; ?>
-                            </p>
+                            <p><?php echo substr($service['description'], 0, 25); ?>...</p>
+                            <?php if ($service['is_negotiable'] == 'yes'): ?>
+                                <p class="negotiable yes">Negotiable</p>
+                            <?php else: ?>
+                                <p class="negotiable no">Not Negotiable</p>
+                            <?php endif; ?>
                         </div>
                     </a>
                 </div>

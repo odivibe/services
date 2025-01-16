@@ -30,7 +30,7 @@ function handleError($userMessage, $e = null, $technicalDetails = null, $redirec
     $logFile = '../errors/custom-error.log';
     error_log($logMessage, 3, $logFile);
 
-    $_SESSION['show_message'] = $userMessage;
+    $_SESSION['show_message'] = '<p>' . $userMessage . '</p>';
 
     // Redirect the user to the error message page
     header("Location: " . BASE_URL . $redirectPage);

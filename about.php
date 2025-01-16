@@ -1,5 +1,8 @@
 <?php
 $page_title = 'About us page';
+
+session_start();
+
 require_once  'include/config.php';
 require_once 'include/header.php';
 ?>

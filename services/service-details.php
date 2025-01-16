@@ -1,4 +1,7 @@
 <?php
+
+session_start();
+
 require_once '../include/config.php';
 require_once '../include/db.php';
 
@@ -12,10 +15,11 @@ $subcategory_slug = isset($_GET['subcategory']) ? $_GET['subcategory'] : '';
 $request_url = $_SERVER['REQUEST_URI'];
 
 // Validate service ID (must be numeric)
-if (!is_numeric($service_id) || $service_id <= 0) {
+if (!is_numeric($service_id) || $service_id <= 0) 
+{
     http_response_code(404);
     require_once '../include/header.php';
-    require_once '../include/404.php';
+    require_once '../errors/404.php';
     require_once '../include/footer.php';
     exit();
 }
@@ -23,15 +27,40 @@ if (!is_numeric($service_id) || $service_id <= 0) {
 // Sanitize the service ID
 $service_id = (int) $service_id;
 
-try {
+try 
+{
     // Fetch service details along with category and subcategory slugs
     $query = "
-        SELECT s.id, s.slug, s.title, s.price, s.is_negotiable, s.description, c.slug AS category_slug, sc.slug AS subcategory_slug
-        FROM services s
-        JOIN categories c ON s.category_id = c.id
-        JOIN subcategories sc ON s.subcategory_id = sc.id
-        WHERE s.id = :id
-    ";
+    SELECT 
+        s.id, 
+        s.slug, 
+        s.title, 
+        s.price, 
+        s.user_id, 
+        s.is_negotiable, 
+        s.description, 
+        c.slug AS category_slug, 
+        sc.slug AS subcategory_slug,
+        u.first_name, 
+        u.last_name, 
+        u.phone,
+        u.profile_image,
+        st.name AS state,
+        lg.name AS lga
+    FROM 
+        services s
+    JOIN 
+        categories c ON s.category_id = c.id
+    JOIN 
+        subcategories sc ON s.subcategory_id = sc.id
+    JOIN 
+        users u ON s.user_id = u.id
+    JOIN 
+        states st ON s.state_id = st.id
+    JOIN 
+        lgas lg ON s.lga_id = lg.id
+    WHERE s.id = :id";
+
     $stmt = $pdo->prepare($query);
     $stmt->bindParam(':id', $service_id, PDO::PARAM_INT);
     $stmt->execute();
@@ -55,6 +84,8 @@ try {
     $stmt->bindParam(':service_id', $service_id, PDO::PARAM_INT);
     $stmt->execute();
     $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 
     // Fetch reviews and calculate average rating
     $query = "
@@ -226,7 +257,7 @@ catch (PDOException $e)
 
             <div class="main-image">
                 <?php if (!empty($images)): ?>
-                    <img id="featured-image" src="<?php echo BASE_URL . htmlspecialchars($images[0]['image_url']); ?>" alt="Main image">
+                    <img id="featured-image" src="<?php echo BASE_URL . 'uploads/services-images/' . $images[0]['image_path']; ?>" alt="Main image">
                 <?php endif; ?>
             </div>
 
@@ -234,7 +265,7 @@ catch (PDOException $e)
                 
                 <?php foreach ($images as $image): ?>
                     <div class="thumbnail-item">
-                        <img src="<?php echo BASE_URL . htmlspecialchars($image['image_url']); ?>" alt="Thumbnail" onclick="changeImage(this.src)">
+                        <img src="<?php echo BASE_URL . 'uploads/services-images/' . $image['image_path']; ?>" alt="Thumbnail" onclick="changeImage(this.src)">
                     </div>
                 <?php endforeach; ?>
                 
@@ -246,10 +277,10 @@ catch (PDOException $e)
 
             <div class="s-details service-details-info">
                 <div class="title-description">
-                    <h1><?php echo htmlspecialchars($service['title']); ?></h1>
+                    <h1><?php echo $service['title']; ?></h1>
                     <hr>
                     <h2>Description</h2>
-                    <p><?php echo htmlspecialchars($service['description']); ?></p>
+                    <p><?php echo $service['description']; ?></p>
                     <hr>
                 </div>
                 
@@ -319,13 +350,17 @@ catch (PDOException $e)
                     </div>
                 </div>
 
+
+
+
+
                 <div class="reviews-section">
                     <h3>Review Comments</h3>
                     <?php if ($total_reviews > 0): ?>
                         <?php foreach ($reviews as $review): ?>
                             <div class="review">
-                                <p class="review-title"><?php echo htmlspecialchars($review['title']); ?></p>
-                                <p class="review-body"><?php echo htmlspecialchars($review['review']); ?></p>
+                                <p class="review-title"><?php echo $review['title']; ?></p>
+                                <p class="review-body"><?php echo $review['review']; ?></p>
                                 <p> 
                                     <span class="reviewer-star-rating-number">
                                         <?php echo $review['rating']; ?>/5
@@ -387,35 +422,49 @@ catch (PDOException $e)
             </div>
         </div>
 
+
+
+
         <!-- Right Container -->
         <div class="right-container">
 
             <div class="s-details advertiser-info">
                 <h3>Advertiser Info</h3>
-                <img src="<?php echo BASE_URL; ?>images/profile-image.jpg" alt="Advertiser profile Picture">
+
+                <?php if (isset($_SESSION['logged_in']) && isset($_SESSION['user_id'])): ?>
+                    <img src="<?php echo BASE_URL . 'uploads/profile-images/' . $service['profile_image']; ?>" alt="Advertiser profile Picture">
+                <?php else: ?>
+                    <img src="<?php echo BASE_URL; ?>images/profile-image.jpg" alt="Advertiser profile Picture">
+                <?php endif; ?>
+
+
+
+
+
+
+
+
+
                 <p>
                     <button class="phone-contact" id="service-phone-contact-button">
                         <i class="fas fa-phone-alt"></i>Show Contact
                     </button>
 
-                    <!--<a tel="<?php //echo $user['phone']; ?>" class="phone-contact" id="service-phone-contact-anchor">
-                        <?php //echo $user['phone']; ?>
-                    </a>-->
+                    <button class="phone-contact" id="service-phone-contact-button">
+                        <a tel="<?php echo $service['phone']; ?>" class="phone-contact" 
+                        id="service-phone-contact-anchor">
+                            <?php echo $service['phone']; ?>
+                        </a>
+                    </button>
                 </p>
                 <p>
                     <i class="fas fa-user" title="Advertiser Name"></i>
-                    <?php //echo $service_provider['first_name'] . ', ' . $service_provider['last_name']; ?>Uche Prince
+                    <?php echo $service['first_name'] . ' ' . $service['last_name']; ?>
+                    
                 </p>
                 <p>
                     <i class="fas fa-map-marker-alt" title="Location"></i> 
-                    <?php //echo $service['state'] . ', ' . $service['lga']; ?>
-                    Imo state 
-                </p>
-
-                <p>
-                    <i class="fas fa-building" title="Office Address"></i> 
-                    <?php //echo $service['address'] . ', ' . $service['city']; ?>
-                    32 Crescent way Road Owerri.
+                    <?php echo $service['state']  . ', ' . $service['lga']; ?>
                 </p>
             </div>
 
@@ -432,7 +481,8 @@ catch (PDOException $e)
                 <ul>
                     <li>Meet in public places</li>
                     <li>Avoid advance payments</li>
-                    <li>Verify the product before purchase</li>
+                    <li>Verify the service before payment</li>
+                    <li>When you are indoubt consult professionals in the field</li>
                 </ul>
             </div>
             

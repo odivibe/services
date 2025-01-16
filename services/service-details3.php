@@ -12,10 +12,11 @@ $subcategory_slug = isset($_GET['subcategory']) ? $_GET['subcategory'] : '';
 $request_url = $_SERVER['REQUEST_URI'];
 
 // Validate service ID (must be numeric)
-if (!is_numeric($service_id) || $service_id <= 0) {
+if (!is_numeric($service_id) || $service_id <= 0) 
+{
     http_response_code(404);
     require_once '../include/header.php';
-    require_once '../include/404.php';
+    require_once '../errors/404.php';
     require_once '../include/footer.php';
     exit();
 }
@@ -25,13 +26,45 @@ $service_id = (int) $service_id;
 
 try {
     // Fetch service details along with category and subcategory slugs
-    $query = "
-        SELECT s.id, s.slug, s.title, s.price, s.is_negotiable, s.description, c.slug AS category_slug, sc.slug AS subcategory_slug
+    /*$query = "
+        SELECT s.id, s.slug, s.title, s.price, s.user_id, s.is_negotiable, s.description, c.slug AS category_slug, sc.slug AS subcategory_slug
         FROM services s
         JOIN categories c ON s.category_id = c.id
         JOIN subcategories sc ON s.subcategory_id = sc.id
         WHERE s.id = :id
     ";
+    $stmt = $pdo->prepare($query);
+    $stmt->bindParam(':id', $service_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $service = $stmt->fetch(PDO::FETCH_ASSOC);*/
+
+
+
+    $query = "
+    SELECT 
+        s.id, 
+        s.slug, 
+        s.title, 
+        s.price, 
+        s.user_id, 
+        s.is_negotiable, 
+        s.description, 
+        c.slug AS category_slug, 
+        sc.slug AS subcategory_slug,
+        u.first_name, 
+        u.last_name, 
+        u.phone,
+        u.profile_image
+    FROM 
+        services s
+    JOIN 
+        categories c ON s.category_id = c.id
+    JOIN 
+        subcategories sc ON s.subcategory_id = sc.id
+    JOIN 
+        users u ON s.user_id = u.id
+    WHERE 
+        s.id = :id";
     $stmt = $pdo->prepare($query);
     $stmt->bindParam(':id', $service_id, PDO::PARAM_INT);
     $stmt->execute();
@@ -138,6 +171,41 @@ catch (PDOException $e)
 
 
 
+//Fetch other ads from the same advertiser
+// Get the current slug of the ads
+$currentSlug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
+
+// Fetch current ad details using slug
+$query = "SELECT id, user_id, category_id FROM services WHERE slug = ?";
+$stmt = $pdo->prepare($query);
+$stmt->execute([$currentSlug]);
+$currentAd = $stmt->fetch();
+
+if (!$currentAd) {
+    // Redirect or show 404 if ad not found
+    header("Location: /404.html");
+    exit;
+}
+
+$userId = $currentAd['user_id'];
+$currentAdId = $currentAd['id'];
+
+// Fetch more ads by the same advertiser excluding the current ad
+$sql = "SELECT id, title, slug, price, created_at 
+        FROM services 
+        WHERE user_id = ? AND id != ? 
+        ORDER BY created_at DESC LIMIT 5";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$userId, $currentAdId]);
+$moreAds = $stmt->fetchAll();
+
+
+
+
+
+
+
 
 
 
@@ -191,7 +259,7 @@ catch (PDOException $e)
 
             <div class="main-image">
                 <?php if (!empty($images)): ?>
-                    <img id="featured-image" src="<?php echo BASE_URL . htmlspecialchars($images[0]['image_url']); ?>" alt="Main image">
+                    <img id="featured-image" src="<?php echo BASE_URL . 'uploads/services-images/' . $images[0]['image_path']; ?>" alt="Main image">
                 <?php endif; ?>
             </div>
 
@@ -199,7 +267,7 @@ catch (PDOException $e)
                 
                 <?php foreach ($images as $image): ?>
                     <div class="thumbnail-item">
-                        <img src="<?php echo BASE_URL . htmlspecialchars($image['image_url']); ?>" alt="Thumbnail" onclick="changeImage(this.src)">
+                        <img src="<?php echo BASE_URL . 'uploads/services-images/' . $image['image_path']; ?>" alt="Thumbnail" onclick="changeImage(this.src)">
                     </div>
                 <?php endforeach; ?>
                 
@@ -211,10 +279,10 @@ catch (PDOException $e)
 
             <div class="s-details service-details-info">
                 <div class="title-description">
-                    <h1><?php echo htmlspecialchars($service['title']); ?></h1>
+                    <h1><?php echo $service['title']; ?></h1>
                     <hr>
                     <h2>Description</h2>
-                    <p><?php echo htmlspecialchars($service['description']); ?></p>
+                    <p><?php echo $service['description']; ?></p>
                     <hr>
                 </div>
                 
@@ -289,8 +357,8 @@ catch (PDOException $e)
                     <?php if ($total_reviews > 0): ?>
                         <?php foreach ($reviews as $review): ?>
                             <div class="review">
-                                <p class="review-title"><?php echo htmlspecialchars($review['title']); ?></p>
-                                <p class="review-body"><?php echo htmlspecialchars($review['review']); ?></p>
+                                <p class="review-title"><?php echo $review['title']; ?></p>
+                                <p class="review-body"><?php echo $review['review']; ?></p>
                                 <p> 
                                     <span class="reviewer-star-rating-number">
                                         <?php echo $review['rating']; ?>/5
@@ -357,7 +425,13 @@ catch (PDOException $e)
 
             <div class="s-details advertiser-info">
                 <h3>Advertiser Info</h3>
-                <img src="<?php echo BASE_URL; ?>images/profile-image.jpg" alt="Advertiser profile Picture">
+
+                <?php if (isset($_SESSION['logged_in'])): ?>
+                    <img src="<?php echo BASE_URL . 'uploads/profile-images/' . $service['profile-image']; ?>" alt="Advertiser profile Picture">
+                <?php else: ?>
+                    <img src="<?php echo BASE_URL; ?>images/profile-image.jpg" alt="Advertiser profile Picture">
+                <?php endif; ?>
+
                 <p>
                     <button class="phone-contact" id="service-phone-contact-button">
                         <i class="fas fa-phone-alt"></i>Show Contact
@@ -369,7 +443,8 @@ catch (PDOException $e)
                 </p>
                 <p>
                     <i class="fas fa-user" title="Advertiser Name"></i>
-                    <?php //echo $service_provider['first_name'] . ', ' . $service_provider['last_name']; ?>Uche Prince
+                    <?php echo $service['first_name'] . ', ' . $service['last_name']; ?>
+                   
                 </p>
                 <p>
                     <i class="fas fa-map-marker-alt" title="Location"></i> 
@@ -438,7 +513,7 @@ catch (PDOException $e)
             <?php if (!empty($similar_ads)): ?>
                 <?php foreach ($similar_ads as $ad): ?>
                     <div class="similar-ad-item">
-                        <a href="<?php echo BASE_URL . $service['category_slug'] . '/' . $service['subcategory_slug'] . '/' . htmlspecialchars($ad['slug']) . '-' . $ad['id'] . '.html'; ?>">
+                        <a href="<?php echo BASE_URL . $service['category_slug'] . '/' . $service['subcategory_slug'] . '/' . $ad['slug'] . '-' . $ad['id'] . '.html'; ?>">
                             <div class="similar-ad-info">
                                 <h3><?php echo $ad['title']; ?></h3>
                                 <p>
@@ -455,6 +530,33 @@ catch (PDOException $e)
 
         </div>
     </div>
+
+
+
+
+
+
+<!-- Ads from the same advertiser -->
+<div class="more-ads-section">
+    <h3>More Ads from This Advertiser</h3>
+    <ul class="more-ads-list">
+        <?php foreach ($moreAds as $ad): ?>
+            <li>
+                <!-- Slug-based URL -->
+                <a href="<?php echo BASE_URL; ?>services/service-details/<?= $ad['slug']; ?>.html">
+                    <div class="ad-item">
+                        <h4><?= htmlspecialchars($ad['title']); ?></h4>
+                        <p>Price: $<?= number_format($ad['price'], 2); ?></p>
+                        <small>Posted on: <?= date('d M Y', strtotime($ad['created_at'])); ?></small>
+                    </div>
+                </a>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</div>
+
+
+
 
 
 

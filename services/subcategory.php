@@ -41,7 +41,7 @@ try
     }
 
     // Fetch ads related to the subcategory
-    $query = "SELECT s.*, i.image_url
+    $query = "SELECT s.*, i.image_path
               FROM services s
               LEFT JOIN service_images i ON s.id = i.service_id
               WHERE s.category_id = :category_id AND s.subcategory_id = :subcategory_id
@@ -87,7 +87,7 @@ catch (PDOException $e)
                 <div class="service-card">
                     <a href="<?php echo $serviceSlug; ?>">
                         <div class="service-img">
-                            <img src="<?php echo BASE_URL . $service['image_url']; ?>" alt="<?php echo $service['title']; ?>">
+                            <img src="<?php echo BASE_URL . 'uploads/services-images/' . $service['image_path']; ?>" alt="<?php echo $service['title']; ?>">
                         </div>
                         <div class="service-text">
                             <h3><?php echo $service['title']; ?></h3>

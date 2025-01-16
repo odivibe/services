@@ -1,22 +1,15 @@
 # Enable Rewrite Engine
-#RewriteEngine On
+RewriteEngine On
 
 # Ensure .htaccess applies to the 'classified' folder
 RewriteBase /classified/
 
-# Custom Error Pages
-ErrorDocument 404 /errors/404.php
-#ErrorDocument 500 /500.php
-
-
 # Rewrite rule for category page
-#RewriteRule ^([a-zA-Z0-9-]+)/?$ services/category.php?slug=$1 [L,QSA]
+RewriteRule ^([a-zA-Z0-9-]+)/?$ services/category.php?slug=$1 [L,QSA]
 
 # Rewrite rule for subcategory page
-#RewriteRule ^([a-zA-Z0-9-]+)/([a-zA-Z0-9-]+)/?$ services/subcategory.php?cat_slug=$1&subcat_slug=$2 [L,QSA]
+RewriteRule ^([a-zA-Z0-9-]+)/([a-zA-Z0-9-]+)/?$ services/subcategory.php?cat_slug=$1&subcat_slug=$2 [L,QSA]
 
 # Rewrite rule for service details page (with .html extension)
-#RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)/([a-z0-9-]+)-(\d+)\.html$ services/
-#service-details.php?category=$1&subcategory=$2&slug=$3&id=$4 [L,QSA]
-
+RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)/([a-z0-9-]+)-(\d+)\.html$ services/service-details.php?category=$1&subcategory=$2&slug=$3&id=$4 [L,QSA]
 
