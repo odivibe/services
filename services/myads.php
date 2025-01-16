@@ -36,6 +36,8 @@ catch (PDOException $e)
 
 ?>
 
+
+
 <?php require_once '../include/header.php'; ?>
 
 <div class="container">
