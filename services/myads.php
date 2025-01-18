@@ -16,10 +16,14 @@ $user_id = $_SESSION['user_id'];
 try 
 {
     $query = "
-        SELECT s.id, s.title, s.status, si.image_path 
+        SELECT s.id, s.title, s.slug, s.status, si.image_path, c.slug AS category_slug, sc.slug AS subcategory_slug
         FROM services AS s
         LEFT JOIN service_images AS si 
-        ON s.id = si.service_id AND si.is_featured = 1
+            ON s.id = si.service_id AND si.is_featured = 1
+        LEFT JOIN categories AS c
+            ON s.category_id = c.id
+        LEFT JOIN subcategories AS sc
+            ON s.subcategory_id = sc.id
         WHERE s.user_id = :user_id
         ORDER BY s.created_at DESC";
 
@@ -36,8 +40,6 @@ catch (PDOException $e)
 
 ?>
 
-
-
 <?php require_once '../include/header.php'; ?>
 
 <div class="container">
@@ -52,34 +54,37 @@ catch (PDOException $e)
                 </tr>
             </thead>
             <tbody>
-                <?php if (!empty($ads)): ?>
-                    <?php foreach ($ads as $ad): ?>
-                        <tr>
-                            <td>
-                                <img src="<?= BASE_URL . 'uploads/services-images/' . $ad['image_path']; ?>" alt="<?php echo $ad['title']; ?>" class="featured-img">
-                            </td>
-                            <td><?= $ad['title'] ?></td>
-                            <td>
-                                <span class="status <?= $ad['status'] ?>">
-                                    <?= ucfirst($ad['status']) ?>
-                                </span>
-                            </td>
-                            <td>
-                                <a href="view-ad.php?id=<?= $ad['id'] ?>" class="btn btn-view">View</a>
-                                <a href="edit-ad.php?id=<?= $ad['id'] ?>" class="btn btn-edit">Edit</a>
-                                <a href="delete-ad.php?id=<?= $ad['id'] ?>" class="btn btn-delete"
-                                   onclick="return confirm('Are you sure you want to delete this ad?');">
-                                    Delete
-                                </a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
+            <?php if (!empty($ads)): ?>
+                <?php foreach ($ads as $ad): ?>
                     <tr>
-                        <td colspan="4">No ads found.</td>
+                        <td>
+                            <img src="<?= BASE_URL . 'uploads/services-images/' . $ad['image_path']; ?>" alt="Featured Image" class="featured-img">
+                        </td>
+                        <td><?= $ad['title'] ?></td>
+                        <td>
+                            <span class="status <?= $ad['status'] ?>">
+                                <?= ucfirst($ad['status']) ?>
+                            </span>
+                        </td>
+                        <td>
+                            <a href="<?= BASE_URL . $ad['category_slug'] . '/' . $ad['subcategory_slug'] . '/' . $ad['slug'] . '-' . $ad['id'] . '.html'; ?>" 
+                               class="btn btn-view" target="_blank">View</a>
+
+                            <a href="edit-ad.php?id=<?= $ad['id'] ?>" class="btn btn-edit">Edit</a>
+                            
+                            <a href="delete-ad.php?id=<?= $ad['id'] ?>" class="btn btn-delete" 
+                               onclick="return confirm('Are you sure you want to delete this ad?');">
+                                Delete
+                            </a>
+                        </td>
                     </tr>
-                <?php endif; ?>
-            </tbody>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="4">No ads found.</td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
         </table>
     </div>
 

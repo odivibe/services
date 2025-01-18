@@ -1,4 +1,8 @@
-<?php require_once '../include/header.php'; ?>
+<?php 
+//session_start();
+require_once '../include/config.php';
+require_once '../include/header.php'; 
+?>
 
 <section class="error-page">
     <h1>404 - Oops! Page Not Found</h1>

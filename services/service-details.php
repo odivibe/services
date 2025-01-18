@@ -5,18 +5,223 @@ session_start();
 require_once '../include/config.php';
 require_once '../include/db.php';
 
+$userLoggedIn = isset($_SESSION['user_id']); // current logged in user
+
 // Get URL parameters
 $service_id = isset($_GET['id']) ? $_GET['id'] : '';
 $title_slug = isset($_GET['slug']) ? $_GET['slug'] : '';
 $category_slug = isset($_GET['category']) ? $_GET['category'] : '';
 $subcategory_slug = isset($_GET['subcategory']) ? $_GET['subcategory'] : '';
 
-// Capture requested URL
+// Get the owner id(advertiser)
+$stmt = $pdo->prepare("SELECT user_id FROM services WHERE id = :service_id");
+$stmt->bindParam(':service_id', $service_id, PDO::PARAM_INT);
+$stmt->execute();
+$service_owner = $stmt->fetch();
+
+// Check if the logged-in user is the owner of the service
+$isOwner = ($userLoggedIn && $_SESSION['user_id'] == $service_owner['user_id']);
+
+$_SESSION['service_id'] = $service_id;
+
+// Capture the full URL and extract the service ID using the slug pattern
 $request_url = $_SERVER['REQUEST_URI'];
 
-// Validate service ID (must be numeric)
-if (!is_numeric($service_id) || $service_id <= 0) 
+// Validate service ID is numeric and greater than 0
+if (is_numeric($service_id) && $service_id > 0) 
 {
+    try 
+    {
+        // Query to fetch the service details using the ID
+        $query = "
+        SELECT 
+            s.id, 
+            s.slug, 
+            s.title, 
+            s.price, 
+            s.user_id, 
+            s.is_negotiable, 
+            s.description, 
+            c.slug AS category_slug, 
+            sc.slug AS subcategory_slug,
+            u.first_name, 
+            u.last_name, 
+            u.phone,
+            u.profile_image,
+            st.name AS state,
+            lg.name AS lga
+        FROM 
+            services s
+        JOIN 
+            categories c ON s.category_id = c.id
+        JOIN 
+            subcategories sc ON s.subcategory_id = sc.id
+        JOIN 
+            users u ON s.user_id = u.id
+        JOIN 
+            states st ON s.state_id = st.id
+        JOIN 
+            lgas lg ON s.lga_id = lg.id
+        WHERE s.id = :id";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam(':id', $service_id, PDO::PARAM_INT);
+        //$stmt->bindParam(':title_slug', $title_slug, PDO::PARAM_INT);
+        $stmt->execute();
+        $service = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // If the service exists, load its details
+        if ($service) 
+        {
+            // Use the category and subcategory slugs to ensure correct URL format
+            $expected_slug = $service['category_slug'] . '/' . $service['subcategory_slug'] . '/' . $service['slug'] . '-' . $service['id'] . '.html';
+
+
+            // Check if the URL format has changed and redirect to the correct URL (optional)
+            /*if ($request_url !== BASE_URL . $expected_slug) 
+            {
+                header("Location: " . BASE_URL . $expected_slug, true, 301);
+                exit();
+            }
+
+
+            if ($service['id'] !== $service_id) 
+            {
+                header("Location: " . BASE_URL . $expected_slug, true, 301);
+                exit();
+            }*/
+
+
+
+            // Fetch images for the service
+            $query = "SELECT * FROM service_images WHERE service_id = :service_id";
+            $stmt = $pdo->prepare($query);
+            $stmt->bindParam(':service_id', $service_id, PDO::PARAM_INT);
+            $stmt->execute();
+            $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+            // Fetch reviews and calculate average rating
+            $query = "
+                SELECT r.rating, r.review, r.title, r.created_at, u.first_name, u.last_name
+                FROM reviews r
+                JOIN users u ON r.user_id = u.id
+                WHERE r.service_id = :service_id";
+            $stmt = $pdo->prepare($query);
+            $stmt->bindParam(':service_id', $service_id, PDO::PARAM_INT);
+            $stmt->execute();
+            $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Calculate average rating
+            $total_reviews = count($reviews);
+            $average_rating = 0;
+            if ($total_reviews > 0) 
+            {
+                $total_rating = array_column($reviews, 'rating'); // get a column called rating from database result
+                $total_rating = array_sum($total_rating); // sum it
+                $average_rating = $total_rating / $total_reviews;
+            }
+
+            // Initialize rating count and percentage arrays
+            $ratings_count = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
+            $ratings_percentage = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
+
+            // Count ratings based on star level
+            foreach ($reviews as $review) 
+            {
+                $ratings_count[$review['rating']]++;
+            }
+
+            // Calculate percentages
+            foreach ($ratings_count as $star => $count) 
+            {
+                $ratings_percentage[$star] = ($total_reviews > 0) ? ($count / $total_reviews) * 100 : 0;
+            }
+
+
+
+            // Fetch similar adverts based on the same subcategory for similar services
+            try 
+            {
+                $query = "
+                    SELECT id, title, slug, price, is_negotiable
+                    FROM services
+                    WHERE subcategory_id = :subcategory_id
+                      AND id != :current_service_id
+                    ORDER BY RAND() -- Random order for variety
+                    LIMIT 10"; // Show up to 10 similar adverts
+
+                $stmt = $pdo->prepare($query);
+                $stmt->bindParam(':subcategory_id', $service['subcategory_slug'], PDO::PARAM_STR);
+                $stmt->bindParam(':current_service_id', $service_id, PDO::PARAM_INT);
+                $stmt->execute();
+                $similar_ads = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            } 
+            catch (PDOException $e) 
+            {
+                error_log("Database error: " . $e->getMessage());
+                $similar_ads = [];
+            }
+
+
+
+
+            //Fetch other ads from the same advertiser
+            // Get the current slug of the ads
+            $currentSlug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
+
+            // Fetch current ad details using slug
+            $query = "SELECT id, user_id, category_id FROM services WHERE slug = ?";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute([$currentSlug]);
+            $currentAd = $stmt->fetch();
+
+            if (!$currentAd) 
+            {
+                // Redirect or show 404 if ad not found
+                header("Location: /404.html");
+                exit;
+            }
+
+            $userId = $currentAd['user_id'];
+            $currentAdId = $currentAd['id'];
+
+            // Fetch more ads by the same advertiser excluding the current ad
+            $sql = "SELECT id, title, slug, price, created_at 
+                    FROM services 
+                    WHERE user_id = ? AND id != ? 
+                    ORDER BY created_at DESC LIMIT 5";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$userId, $currentAdId]);
+            $moreAds = $stmt->fetchAll();
+
+        } 
+        else 
+        {
+            // If no service is found with this ID, show 404 page
+            http_response_code(404);
+            require_once '../include/header.php';
+            require_once '../errors/404.php';
+            require_once '../include/footer.php';
+            exit();
+        }
+    } 
+    catch (PDOException $e) 
+    {
+        error_log("Database error: " . $e->getMessage());
+        http_response_code(500);
+        require_once '../include/header.php';
+        require_once '../include/500.php';
+        require_once '../include/footer.php';
+        exit();
+    }
+} 
+else 
+{
+    // Invalid ID in the URL
     http_response_code(404);
     require_once '../include/header.php';
     require_once '../errors/404.php';
@@ -24,200 +229,6 @@ if (!is_numeric($service_id) || $service_id <= 0)
     exit();
 }
 
-// Sanitize the service ID
-$service_id = (int) $service_id;
-
-try 
-{
-    // Fetch service details along with category and subcategory slugs
-    $query = "
-    SELECT 
-        s.id, 
-        s.slug, 
-        s.title, 
-        s.price, 
-        s.user_id, 
-        s.is_negotiable, 
-        s.description, 
-        c.slug AS category_slug, 
-        sc.slug AS subcategory_slug,
-        u.first_name, 
-        u.last_name, 
-        u.phone,
-        u.profile_image,
-        st.name AS state,
-        lg.name AS lga
-    FROM 
-        services s
-    JOIN 
-        categories c ON s.category_id = c.id
-    JOIN 
-        subcategories sc ON s.subcategory_id = sc.id
-    JOIN 
-        users u ON s.user_id = u.id
-    JOIN 
-        states st ON s.state_id = st.id
-    JOIN 
-        lgas lg ON s.lga_id = lg.id
-    WHERE s.id = :id";
-
-    $stmt = $pdo->prepare($query);
-    $stmt->bindParam(':id', $service_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $service = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Check if service exists
-    if (!$service) {
-        http_response_code(404);
-        require_once '../include/header.php';
-        require_once '../include/404.php';
-        require_once '../include/footer.php';
-        exit();
-    }
-
-    // Generate the expected slug based on database values
-    $expected_slug = '/classified/' . $service['category_slug'] . '/' . $service['subcategory_slug'] . '/' . $service['slug'] . '-' . $service['id'] . '.html';
-
-    // Fetch images for the service
-    $query = "SELECT * FROM service_images WHERE service_id = :service_id";
-    $stmt = $pdo->prepare($query);
-    $stmt->bindParam(':service_id', $service_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-
-    // Fetch reviews and calculate average rating
-    $query = "
-        SELECT r.rating, r.review, r.title, r.created_at, u.first_name, u.last_name
-        FROM reviews r
-        JOIN users u ON r.user_id = u.id
-        WHERE r.service_id = :service_id
-    ";
-    $stmt = $pdo->prepare($query);
-    $stmt->bindParam(':service_id', $service_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Calculate average rating
-    $total_reviews = count($reviews);
-    $average_rating = 0;
-    if ($total_reviews > 0) 
-    {
-        $total_rating = array_column($reviews, 'rating'); // get a column called rating from database result
-        $total_rating = array_sum($total_rating); // sum it
-        $average_rating = $total_rating / $total_reviews;
-    }
-
-
-
-
-
-
-
-    // Initialize rating count and percentage arrays
-$ratings_count = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
-$ratings_percentage = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
-
-// Count ratings based on star level
-foreach ($reviews as $review) {
-    $ratings_count[$review['rating']]++;
-}
-
-// Calculate percentages
-foreach ($ratings_count as $star => $count) 
-{
-    $ratings_percentage[$star] = ($total_reviews > 0) ? ($count / $total_reviews) * 100 : 0;
-}
-
-
-
-
-
-
-
-
-
-// Fetch similar adverts based on the same subcategory for similar services
-try 
-{
-    $query = "
-        SELECT id, title, slug, price, is_negotiable
-        FROM services
-        WHERE subcategory_id = :subcategory_id
-          AND id != :current_service_id
-        ORDER BY RAND() -- Random order for variety
-        LIMIT 6"; // Show up to 6 similar adverts
-
-    $stmt = $pdo->prepare($query);
-    $stmt->bindParam(':subcategory_id', $service['subcategory_slug'], PDO::PARAM_STR);
-    $stmt->bindParam(':current_service_id', $service_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $similar_ads = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-} 
-catch (PDOException $e) 
-{
-    error_log("Database error: " . $e->getMessage());
-    $similar_ads = [];
-}
-
-
-
-
-
-
-
-
-//Fetch other ads from the same advertiser
-// Get the current slug of the ads
-$currentSlug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
-
-// Fetch current ad details using slug
-$query = "SELECT id, user_id, category_id FROM services WHERE slug = ?";
-$stmt = $pdo->prepare($query);
-$stmt->execute([$currentSlug]);
-$currentAd = $stmt->fetch();
-
-if (!$currentAd) {
-    // Redirect or show 404 if ad not found
-    header("Location: /404.html");
-    exit;
-}
-
-$userId = $currentAd['user_id'];
-$currentAdId = $currentAd['id'];
-
-// Fetch more ads by the same advertiser excluding the current ad
-$sql = "SELECT id, title, slug, price, created_at 
-        FROM services 
-        WHERE user_id = ? AND id != ? 
-        ORDER BY created_at DESC LIMIT 5";
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$userId, $currentAdId]);
-$moreAds = $stmt->fetchAll();
-
-
-
-
-
-
-
-
-
-
-
-} 
-catch (PDOException $e) 
-{
-    error_log("Database error: " . $e->getMessage());
-    http_response_code(500);
-    require_once '../include/header.php';
-    require_once '../include/500.php';
-    require_once '../include/footer.php';
-    exit();
-}
 ?>
 
 <?php include '../include/header.php'; ?>
@@ -366,12 +377,6 @@ catch (PDOException $e)
                                         <?php echo $review['rating']; ?>/5
                                     </span>
 
-
-
-
-
-
-
                                     <span class="stars">
                                         <?php
                                         // Total number of stars (e.g., 5 stars)
@@ -393,13 +398,6 @@ catch (PDOException $e)
                                     </span>
 
 
-
-
-
-
-
-
-
                                 </p>
                                 <p>
                                     <span class="time-rating-posted">
@@ -414,6 +412,22 @@ catch (PDOException $e)
                             <a href="<?php echo BASE_URL; ?>services/view-comments.php">
                                 View All
                             </a>
+
+                            <!-- write review link -->
+                            <?php if ($userLoggedIn && !$isOwner): ?>
+                                <a href="<?php echo BASE_URL; ?>reviews/write-review.php?service_id=<?php echo 
+                                $service_id; ?>">
+                                    Write a Review
+                                </a>
+                            <?php else: ?>
+                                <?php if (!$userLoggedIn): ?>
+                                    <a href="<?php echo BASE_URL; ?>reviews/write-review.php?service_id=<?php echo 
+                                    $service_id; ?>">
+                                        Write a Review
+                                    </a>
+                                <?php endif; ?>
+                            <?php endif; ?>
+
                         </div>
                     <?php else: ?>
                         <p class="review-body">No reviews yet.</p>
@@ -421,8 +435,6 @@ catch (PDOException $e)
                 </div>
             </div>
         </div>
-
-
 
 
         <!-- Right Container -->

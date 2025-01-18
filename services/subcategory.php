@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../include/config.php';
 require_once '../include/db.php';
 
@@ -12,7 +13,7 @@ if (!$categorySlug || !$subcategorySlug)
     error_log("Missing or invalid category/subcategory slug.");
     http_response_code(404);
     require_once '../include/header.php';
-    require_once '../include/404.php';
+    require_once '../errors/404.php';
     require_once '../include/footer.php';
     exit();
 }
@@ -35,7 +36,7 @@ try
         error_log("Category or subcategory not found: $categorySlug / $subcategorySlug");
         http_response_code(404);
         require_once '../include/header.php';
-        require_once '../include/404.php';
+        require_once '../errors/404.php';
         require_once '../include/footer.php';
         exit();
     }
@@ -65,7 +66,7 @@ catch (PDOException $e)
     error_log("Database Error: " . $e->getMessage());
     http_response_code(500);
     require_once '../include/header.php';
-    require_once '../include/500.php';
+    require_once '../errors/404.php';
     require_once '../include/footer.php';
     exit();
 }
