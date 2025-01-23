@@ -37,7 +37,7 @@ $states = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <!-- Title -->
         <div class="form-group">
             <label for="title">Title:<span class="required">*</span></label>
-            <input type="text" name="title" id="title" maxlength="50" required>
+            <input type="text" name="title" id="title" maxlength="150" required>
             <div id="title-error" class="error-message"></div> 
         </div>
 

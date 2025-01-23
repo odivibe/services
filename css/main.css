@@ -22,7 +22,7 @@ i {
 
 body {
     font-family: 'Poppins', Arial, sans-serif;
-    background-color: #EBF2F7;
+    background-color: #F1F1F2;
     font-size: 16px;
 }
 
@@ -316,10 +316,15 @@ nav {
     color: var(--accent-color);
 }
 
+.body-container {
+    width: 92%;
+    margin: 0 auto;
+}
+
 section {
-    margin-bottom: 20px;
-    padding: 10px 40px;
+    margin-bottom: 50px;
     text-align: center;
+    background-color: #F5F5F5;
 }
 
 /* Category Styles */
@@ -395,7 +400,7 @@ section {
 
 /* featured services section */
 .featured-section {
-    padding: 20px;
+    background-color: transparent;
 }
 
 .featured-section h2 {
@@ -443,12 +448,16 @@ section {
 
 .service-text {
     padding: 5px;
+    text-align: left;
+    padding-left: 5px;
+    text-align: center;
 }
 
 .service-text h3 {
     font-size: 0.87rem;
     color: #333;
     margin: 10px 0;
+
 }
 
 .service-text .price {
@@ -456,6 +465,7 @@ section {
     font-weight: bold;
     color: var(--accent-color);
     background-color: var(--primary-color);
+
 }
 
 .service-text p {
@@ -488,6 +498,7 @@ section {
     text-align: center;
     overflow: hidden;
     margin-bottom: 0;
+    background-color: transparent;
 }
 
 .how-it-works-section img {
@@ -895,7 +906,7 @@ button#resend-button:disabled {
 }
 
 .breadcrumb-container a {
-    color: #007bff;
+    color: var(--accent-color-two);
     text-decoration: none;
 }
 
@@ -1059,7 +1070,7 @@ button#resend-button:disabled {
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 630px;
+    height: 650px;
     overflow: hidden;
     background-color: #f0f0f0;
     position: relative;
@@ -1482,7 +1493,7 @@ button#resend-button:disabled {
     border-radius: 10px;
     color: #ffffff;
     padding: 10px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: bold;
     border: none;
     outline: none;
@@ -1520,7 +1531,7 @@ button#resend-button:disabled {
 .one-to-one-chat button {
     width: 100%;
     padding: 14px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     background-color: var(--accent-color);
     text-align: center;
     color: #ffffff;
@@ -1620,6 +1631,84 @@ h3.socials-header {
 .share-on-socials a:hover {
     text-decoration: underline; 
 }
+
+
+.write-review-link {
+    background-color: var(--accent-color);
+    padding: 10px;
+    border-radius: 10px;
+    color: #ffffff;
+}
+
+.write-review-link a {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.write-review-link:hover {
+    text-decoration: underline;
+    background-color: var(--hover-color);
+}
+
+
+/* write review page stars css styling 
+.star-rating {
+    display: inline-block;
+    font-size: 2em;
+    color: #ccc; /* Default unfilled star color 
+    border-radius: 5px;
+    margin: 0;
+    padding: 5px 45px;
+}
+
+.star-rating i {
+    margin-right: 5px;
+    transition: color 0.3s ease;
+}
+
+.star-rating i.fas {
+    color: gold; /* Filled star color 
+}
+
+.star-rating i.far {
+    color: #ccc;  Unfilled star color 
+}
+
+.star-rating i:hover {
+    color: gold;  Highlight the stars on hover 
+}*/
+
+
+/* pagination style */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    margin: 0 5px;
+    padding: 8px 16px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    color: #000;
+    border-radius: 4px;
+}
+
+.pagination a.active {
+    background-color: var(--accent-color-two);
+    color: white;
+}
+
+.pagination a:hover {
+    background-color: var(--hover-color-two);
+}
+
+
+
+
 
 /* Newsletter Section */
 .newsletter {
@@ -1847,13 +1936,6 @@ h3.socials-header {
 
 
 /* myads.php style */
-
-.container {
-    width: 90%;
-    margin: auto;
-    padding: 20px;
-}
-
 .ads-table {
     width: 100%;
     border-collapse: collapse;

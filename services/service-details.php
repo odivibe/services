@@ -5,7 +5,7 @@ session_start();
 require_once '../include/config.php';
 require_once '../include/db.php';
 
-$userLoggedIn = isset($_SESSION['user_id']); // current logged in user
+$userLoggedIn = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null; // current logged in user
 
 // Get URL parameters
 $service_id = isset($_GET['id']) ? $_GET['id'] : '';
@@ -22,34 +22,20 @@ $service_owner = $stmt->fetch();
 // Check if the logged-in user is the owner of the service
 $isOwner = ($userLoggedIn && $_SESSION['user_id'] == $service_owner['user_id']);
 
-$_SESSION['service_id'] = $service_id;
-
 // Capture the full URL and extract the service ID using the slug pattern
 $request_url = $_SERVER['REQUEST_URI'];
 
 // Validate service ID is numeric and greater than 0
 if (is_numeric($service_id) && $service_id > 0) 
 {
+    $hash = hash_hmac('sha256', $service_id, SECRET_KEY);
+
     try 
     {
         // Query to fetch the service details using the ID
         $query = "
-        SELECT 
-            s.id, 
-            s.slug, 
-            s.title, 
-            s.price, 
-            s.user_id, 
-            s.is_negotiable, 
-            s.description, 
-            c.slug AS category_slug, 
-            sc.slug AS subcategory_slug,
-            u.first_name, 
-            u.last_name, 
-            u.phone,
-            u.profile_image,
-            st.name AS state,
-            lg.name AS lga
+        SELECT s.id, s.slug, s.title, s.price, s.user_id, s.is_negotiable, s.description, c.slug AS category_slug, sc.slug AS subcategory_slug,u.first_name, u.last_name, u.phone,u.profile_image,
+            st.name AS state,lg.name AS lga
         FROM 
             services s
         JOIN 
@@ -66,7 +52,6 @@ if (is_numeric($service_id) && $service_id > 0)
 
         $stmt = $pdo->prepare($query);
         $stmt->bindParam(':id', $service_id, PDO::PARAM_INT);
-        //$stmt->bindParam(':title_slug', $title_slug, PDO::PARAM_INT);
         $stmt->execute();
         $service = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -74,23 +59,17 @@ if (is_numeric($service_id) && $service_id > 0)
         if ($service) 
         {
             // Use the category and subcategory slugs to ensure correct URL format
-            $expected_slug = $service['category_slug'] . '/' . $service['subcategory_slug'] . '/' . $service['slug'] . '-' . $service['id'] . '.html';
+            $expected_slug = '/classified/' . $service['category_slug'] . '/' . $service['subcategory_slug'] . '/' . $service['slug'] . '-' . $service['id'] . '.html';//Remove the classified folder online
+
+            $_SESSION['expected_slug'] = $expected_slug;
 
 
             // Check if the URL format has changed and redirect to the correct URL (optional)
-            /*if ($request_url !== BASE_URL . $expected_slug) 
+            if ($request_url !== $expected_slug) 
             {
-                header("Location: " . BASE_URL . $expected_slug, true, 301);
+                header("Location: " . $expected_slug, true, 301);
                 exit();
             }
-
-
-            if ($service['id'] !== $service_id) 
-            {
-                header("Location: " . BASE_URL . $expected_slug, true, 301);
-                exit();
-            }*/
-
 
 
             // Fetch images for the service
@@ -101,10 +80,9 @@ if (is_numeric($service_id) && $service_id > 0)
             $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
-
             // Fetch reviews and calculate average rating
             $query = "
-                SELECT r.rating, r.review, r.title, r.created_at, u.first_name, u.last_name
+                SELECT r.rating, r.comment, r.title, r.created_at, u.first_name, u.last_name
                 FROM reviews r
                 JOIN users u ON r.user_id = u.id
                 WHERE r.service_id = :service_id";
@@ -140,24 +118,34 @@ if (is_numeric($service_id) && $service_id > 0)
             }
 
 
+            // Your query to check if the user has written a review
+            $user_has_reviewed = false; // Default to false
+            $review_check_query = "SELECT COUNT(*) AS review_count FROM reviews WHERE service_id = :service_id AND user_id = :user_id";
+            $check_stmt = $pdo->prepare($review_check_query);
+            $check_stmt->bindParam(':service_id', $service_id, PDO::PARAM_INT);
+            $check_stmt->bindParam(':user_id', $userLoggedIn, PDO::PARAM_INT);
+            $check_stmt->execute();
+            $review_check = $check_stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($review_check['review_count'] > 0) 
+            {
+                $user_has_reviewed = true; // User has written a review
+            } 
+            else 
+            {
+                $user_has_reviewed = false; // User has not written a review
+            }
+
 
             // Fetch similar adverts based on the same subcategory for similar services
             try 
             {
-                $query = "
-                    SELECT id, title, slug, price, is_negotiable
-                    FROM services
-                    WHERE subcategory_id = :subcategory_id
-                      AND id != :current_service_id
-                    ORDER BY RAND() -- Random order for variety
-                    LIMIT 10"; // Show up to 10 similar adverts
-
+                $query = "SELECT id, title, slug, price, is_negotiable FROM services WHERE subcategory_id = :subcategory_id AND id != :current_service_id ORDER BY RAND() LIMIT 10";
                 $stmt = $pdo->prepare($query);
                 $stmt->bindParam(':subcategory_id', $service['subcategory_slug'], PDO::PARAM_STR);
                 $stmt->bindParam(':current_service_id', $service_id, PDO::PARAM_INT);
                 $stmt->execute();
                 $similar_ads = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
             } 
             catch (PDOException $e) 
             {
@@ -166,10 +154,7 @@ if (is_numeric($service_id) && $service_id > 0)
             }
 
 
-
-
             //Fetch other ads from the same advertiser
-            // Get the current slug of the ads
             $currentSlug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
 
             // Fetch current ad details using slug
@@ -180,7 +165,6 @@ if (is_numeric($service_id) && $service_id > 0)
 
             if (!$currentAd) 
             {
-                // Redirect or show 404 if ad not found
                 header("Location: /404.html");
                 exit;
             }
@@ -197,7 +181,6 @@ if (is_numeric($service_id) && $service_id > 0)
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$userId, $currentAdId]);
             $moreAds = $stmt->fetchAll();
-
         } 
         else 
         {
@@ -307,6 +290,7 @@ else
                 </div>
             </div>
 
+
             <!-- Reviews Section -->
             <div class="s-details reviews-section-container">
 
@@ -361,17 +345,13 @@ else
                     </div>
                 </div>
 
-
-
-
-
                 <div class="reviews-section">
                     <h3>Review Comments</h3>
                     <?php if ($total_reviews > 0): ?>
                         <?php foreach ($reviews as $review): ?>
                             <div class="review">
                                 <p class="review-title"><?php echo $review['title']; ?></p>
-                                <p class="review-body"><?php echo $review['review']; ?></p>
+                                <p class="review-body"><?php echo $review['comment']; ?></p>
                                 <p> 
                                     <span class="reviewer-star-rating-number">
                                         <?php echo $review['rating']; ?>/5
@@ -396,8 +376,6 @@ else
                                         }
                                         ?>
                                     </span>
-
-
                                 </p>
                                 <p>
                                     <span class="time-rating-posted">
@@ -408,34 +386,21 @@ else
                                 </p>
                             </div>
                         <?php endforeach; ?>
+
                         <div class="rating-all-comments">
-                            <a href="<?php echo BASE_URL; ?>services/view-comments.php">
+                            <a href="<?php echo BASE_URL; ?>reviews/review-comments.php?service_id=<?php echo 
+                            $service_id .'&review_token=' . $hash; ?>">
                                 View All
                             </a>
-
-                            <!-- write review link -->
-                            <?php if ($userLoggedIn && !$isOwner): ?>
-                                <a href="<?php echo BASE_URL; ?>reviews/write-review.php?service_id=<?php echo 
-                                $service_id; ?>">
-                                    Write a Review
-                                </a>
-                            <?php else: ?>
-                                <?php if (!$userLoggedIn): ?>
-                                    <a href="<?php echo BASE_URL; ?>reviews/write-review.php?service_id=<?php echo 
-                                    $service_id; ?>">
-                                        Write a Review
-                                    </a>
-                                <?php endif; ?>
-                            <?php endif; ?>
-
                         </div>
+
                     <?php else: ?>
                         <p class="review-body">No reviews yet.</p>
                     <?php endif; ?>
                 </div>
+
             </div>
         </div>
-
 
         <!-- Right Container -->
         <div class="right-container">
@@ -446,29 +411,23 @@ else
                 <?php if (isset($_SESSION['logged_in']) && isset($_SESSION['user_id'])): ?>
                     <img src="<?php echo BASE_URL . 'uploads/profile-images/' . $service['profile_image']; ?>" alt="Advertiser profile Picture">
                 <?php else: ?>
-                    <img src="<?php echo BASE_URL; ?>images/profile-image.jpg" alt="Advertiser profile Picture">
+                    <img src="<?php echo BASE_URL; ?>images/default-profile.jpg" alt="Advertiser profile Picture">
                 <?php endif; ?>
 
-
-
-
-
-
-
-
-
                 <p>
-                    <button class="phone-contact" id="service-phone-contact-button">
-                        <i class="fas fa-phone-alt"></i>Show Contact
+                    <!-- Show Contact Button -->
+                    <button class="phone-contact" id="show-contact-button" onclick="showPhoneNumber()">
+                        <i class="fas fa-phone-alt"></i> Show Contact
                     </button>
 
-                    <button class="phone-contact" id="service-phone-contact-button">
-                        <a tel="<?php echo $service['phone']; ?>" class="phone-contact" 
-                        id="service-phone-contact-anchor">
+                    <!-- Phone Number Button (Initially Hidden) -->
+                    <button class="phone-contact" id="phone-contact-button" style="display: none;">
+                        <a href="tel:<?php echo $service['phone']; ?>" class="phone-contact" id="phone-contact-anchor">
                             <?php echo $service['phone']; ?>
                         </a>
                     </button>
                 </p>
+
                 <p>
                     <i class="fas fa-user" title="Advertiser Name"></i>
                     <?php echo $service['first_name'] . ' ' . $service['last_name']; ?>
@@ -507,6 +466,27 @@ else
                 <p class="stat-counter like-counter"><i class="fas fa-thumbs-up" title="Likes"></i>567</p>
             </div>
 
+            <!-- Write review link -->
+            <!-- Show "Write a Review" link for other users that are logged in, excluding the ads owner-->
+            <?php if ($userLoggedIn && !$isOwner && !$user_has_reviewed): ?>
+                <div class="s-details">
+                    <p class="write-review-link">
+                        <a href="<?php echo BASE_URL; ?>reviews/write-review.php?service_id=<?php echo 
+                            $service_id .'&review_token=' . $hash; ?>">Write a Review
+                        </a>
+                    </p>
+                </div>
+            <?php elseif (!$userLoggedIn): ?>
+                <!-- If the user is not logged in, show the "Write a Review" link -->
+                <div class="s-details">
+                    <p class="write-review-link">
+                        <a href="<?php echo BASE_URL; ?>reviews/write-review.php?service_id=<?php 
+                            echo $service_id .'&review_token=' . $hash; ?>">Write a Review
+                        </a>
+                    </p>
+                </div>
+            <?php endif; ?>
+
             <div class="s-details">
                 <h3 class="socials-header">Share on socials</h3>
                 <div class="share-on-socials">
@@ -519,9 +499,6 @@ else
             </div>
         </div>
     </div>
-
-
-
 
 
 
@@ -577,14 +554,6 @@ else
     </ul>
 </div>
 
-
-
-
-
-
-
-
-
 </section>
 
 <script>
@@ -593,7 +562,6 @@ else
         document.getElementById('featured-image').src = src;
 
     }
-
 
     // Update star rating dynamically
     window.onload = function () {
@@ -628,6 +596,15 @@ else
     }
 
 
+    // JavaScript function to toggle visibility of phone number
+    function showPhoneNumber() 
+    {
+        // Hide the "Show Contact" button
+        document.getElementById('show-contact-button').style.display = 'none';
+
+        // Show the button with the phone number
+        document.getElementById('phone-contact-button').style.display = 'inline-block';
+    }
 
 </script>
 

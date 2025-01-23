@@ -117,6 +117,11 @@ if ($isLoggedIn && $user_id)
                     </a>
                 </li>
                 <li>
+                    <a href="#" title="Favorite" class="favorite">
+                        <i class="fa fa-comment"></i> Reviews
+                    </a>
+                </li>
+                <li>
                     <a href="#" title="Message" class="message">
                         <i class="fas fa-envelope"></i> Message
                     </a>

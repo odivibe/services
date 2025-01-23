@@ -34,7 +34,7 @@ try
 } 
 catch (PDOException $e) 
 {
-    error_log($e->getMessage(), 3, '../logs/custom-error.log');
+    error_log($e->getMessage(), 3, '../errors/custom-error.log');
     die('Error fetching ads. Please try again later.');
 }
 
@@ -42,7 +42,7 @@ catch (PDOException $e)
 
 <?php require_once '../include/header.php'; ?>
 
-<div class="container">
+<main class="body-container">
         <h1>My Ads</h1>
         <table class="ads-table">
             <thead>
@@ -67,8 +67,9 @@ catch (PDOException $e)
                             </span>
                         </td>
                         <td>
-                            <a href="<?= BASE_URL . $ad['category_slug'] . '/' . $ad['subcategory_slug'] . '/' . $ad['slug'] . '-' . $ad['id'] . '.html'; ?>" 
-                               class="btn btn-view" target="_blank">View</a>
+                            <a href="<?= BASE_URL . $ad['category_slug'] . '/' . $ad['subcategory_slug'] . '/' . $ad['slug'] . '-' . $ad['id'] . '.html'; ?>" class="btn btn-view" >
+                                View
+                           </a>
 
                             <a href="edit-ad.php?id=<?= $ad['id'] ?>" class="btn btn-edit">Edit</a>
                             
@@ -86,6 +87,6 @@ catch (PDOException $e)
             <?php endif; ?>
         </tbody>
         </table>
-    </div>
+</main>
 
 <?php require_once '../include/footer.php'; ?>

@@ -39,7 +39,7 @@ $searchTarget = BASE_URL . "search.php?query={search_term_string}";
 
 <?php require_once 'include/header.php'; ?>
 
-<main class="body-container">
+
     <section class="hero-section">
         <div class="hero-image">
             <img src="<?php echo BASE_URL; ?>images/skill-worker.jpg" alt="People Collaborating on Services">
@@ -70,6 +70,8 @@ $searchTarget = BASE_URL . "search.php?query={search_term_string}";
             </div>
         </div>
     </section>
+
+    <main class="body-container">
 
     <!-- Categories Section -->
     <section class="category-section">
@@ -121,11 +123,11 @@ $searchTarget = BASE_URL . "search.php?query={search_term_string}";
                             <img src="<?php echo BASE_URL; ?>uploads/services-images/<?php echo $service['image_path']; ?>" alt="<?php echo $service['title']; ?>">
                         </div>
                         <div class="service-text">
-                            <h3><?php echo $service['title']; ?></h3>
+                            <h3><?php echo substr($service['title'], 0, 24); ?>...</h3>
                             <p class="price">
                                 <?php echo $service['price'] ? CURRENCY_TYPE_SYMBOLE . number_format($service['price'], 2) : 'Price on Request'; ?>
                             </p>
-                            <p><?php echo substr($service['description'], 0, 25); ?>...</p>
+                            
                             <?php if ($service['is_negotiable'] == 'yes'): ?>
                                 <p class="negotiable yes">Negotiable</p>
                             <?php else: ?>
