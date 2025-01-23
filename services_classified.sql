@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 18, 2025 at 09:58 PM
+-- Generation Time: Jan 23, 2025 at 11:53 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,34 @@ SET time_zone = "+00:00";
 --
 -- Database: `services_classified`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ad_views`
+--
+
+CREATE TABLE `ad_views` (
+  `id` int(11) NOT NULL,
+  `service_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `view_count` int(11) DEFAULT 1,
+  `last_viewed` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ad_views`
+--
+
+INSERT INTO `ad_views` (`id`, `service_id`, `user_id`, `ip_address`, `view_count`, `last_viewed`, `created_at`) VALUES
+(1, 8, NULL, '::1', 7, '2025-01-23 20:59:55', '2025-01-23 20:52:19'),
+(2, 9, NULL, '::1', 1, '2025-01-23 21:00:13', '2025-01-23 21:00:13'),
+(3, 7, NULL, '::1', 23, '2025-01-23 21:11:39', '2025-01-23 21:00:20'),
+(4, 9, NULL, '::1', 1, '2025-01-23 22:17:42', '2025-01-23 22:17:42'),
+(5, 8, NULL, '::1', 1, '2025-01-23 22:20:58', '2025-01-23 22:20:58'),
+(6, 1, NULL, '::1', 1, '2025-01-23 22:31:47', '2025-01-23 22:31:47');
 
 -- --------------------------------------------------------
 
@@ -880,12 +908,12 @@ CREATE TABLE `newsletter_subscribers` (
 
 CREATE TABLE `reviews` (
   `id` int(11) NOT NULL,
-  `service_id` int(11) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL,
+  `service_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
-  `rating` int(11) DEFAULT NULL CHECK (`rating` between 1 and 5),
-  `review` text DEFAULT NULL,
-  `status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `rating` int(11) NOT NULL,
+  `comment` text NOT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -893,8 +921,10 @@ CREATE TABLE `reviews` (
 -- Dumping data for table `reviews`
 --
 
-INSERT INTO `reviews` (`id`, `service_id`, `user_id`, `title`, `rating`, `review`, `status`, `created_at`) VALUES
-(1, 1, 1, 'good product, keep it up', 4, 'your service is good, we like it', 'pending', '2025-01-17 20:19:11');
+INSERT INTO `reviews` (`id`, `service_id`, `user_id`, `title`, `rating`, `comment`, `status`, `created_at`) VALUES
+(1, 1, 2, 'good product, keep it up', 4, 'your service is good, we like it', 'pending', '2025-01-17 20:19:11'),
+(2, 6, 1, 'excellent work', 3, 'i like the work you did to me, keep it up.', 'pending', '2025-01-20 19:50:07'),
+(3, 6, 1, 'hhhhhhhh', 1, 'jjjjjjjjjjjjjjjjjjj', 'pending', '2025-01-20 19:58:59');
 
 -- --------------------------------------------------------
 
@@ -924,7 +954,11 @@ CREATE TABLE `services` (
 --
 
 INSERT INTO `services` (`id`, `category_id`, `subcategory_id`, `user_id`, `title`, `slug`, `description`, `price`, `is_negotiable`, `state_id`, `lga_id`, `status`, `created_at`, `updated_at`) VALUES
-(1, 11, 60, 1, 'building construction', 'building-construction', 'i love it', 3000000.00, 'no', 2, 31, 'approved', '2025-01-13 20:14:43', '2025-01-15 10:31:02');
+(1, 11, 60, 1, 'building construction generate the anchor link that matches the specified pattern, you need to ensure that', 'building-construction', 'i love it', 7000.00, 'no', 2, 31, 'approved', '2025-01-13 20:14:43', '2025-01-23 17:43:46'),
+(6, 3, 17, 2, 'beauty routing cream generate the generate the anchor link that matches the specified pattern, you need to ensure thatanchor link that matches the specified pattern, you need to ensure that', 'beauty-routing-cream', 'we deal on creams that will beautify your skin and bring your skin alive to the way you wanted it, try our product today, you will be glad you did', 6000.00, 'yes', 32, 747, 'approved', '2025-01-19 09:08:54', '2025-01-23 17:44:00'),
+(7, 17, 89, 1, 'camera and light equipment for shooting at affordable price generate the anchor link that matches the specified pattern, you need to ensure that', 'camera-and-light-equipment-for-shooting-at-affordable-price', 'we are into equipment hiring for shooting of film and other activities, our equipment is of standard that can give you all you need.', 450000.00, 'no', 14, 271, 'approved', '2025-01-21 19:37:25', '2025-01-23 17:44:08'),
+(8, 17, 90, 1, 'high definition camera with stand and zone effect generate the anchor link that matches the specified pattern, you need to ensure that', 'high-definition-camera-with-stand-and-zone-effect', 'we sale high definition HD camera that has zomming effect for modern capturing', 250000.00, 'yes', 37, 824, 'approved', '2025-01-21 19:43:30', '2025-01-23 17:44:16'),
+(9, 11, 60, 1, 'land at the heart of the two for sale generate the anchor link that matches the specified pattern, you need to ensure that', 'land-at-the-heart-of-the-two-for-sale', 'Land for Sale at kubwa 600sqm After F01 round about Kubwa Beside Military Pension Board kubwa Agis recertification acknowledgement documents available Price slightly negotiable For outright sales', 3000000.00, 'yes', 24, 508, 'approved', '2025-01-23 10:47:34', '2025-01-23 17:44:23');
 
 -- --------------------------------------------------------
 
@@ -951,7 +985,26 @@ INSERT INTO `service_images` (`id`, `service_id`, `image_path`, `is_featured`, `
 (4, 1, 'building-construction-1-image-4.jpg', 0, '2025-01-13 20:14:43'),
 (5, 1, 'building-construction-1-image-5.jpg', 0, '2025-01-13 20:14:43'),
 (6, 1, 'building-construction-1-image-6.jpg', 0, '2025-01-13 20:14:43'),
-(7, 1, 'building-construction-1-image-7.jpg', 0, '2025-01-13 20:14:43');
+(7, 1, 'building-construction-1-image-7.jpg', 0, '2025-01-13 20:14:43'),
+(40, 6, 'beauty-routing-cream-6-image-1.jpg', 1, '2025-01-19 09:08:55'),
+(41, 6, 'beauty-routing-cream-6-image-2.jpg', 0, '2025-01-19 09:08:55'),
+(42, 6, 'beauty-routing-cream-6-image-3.jpg', 0, '2025-01-19 09:08:55'),
+(43, 6, 'beauty-routing-cream-6-image-4.jpg', 0, '2025-01-19 09:08:55'),
+(44, 6, 'beauty-routing-cream-6-image-5.jpg', 0, '2025-01-19 09:08:55'),
+(45, 7, 'camera-and-light-equipment-for-shooting-at-affordable-price-7-image-1.jpg', 1, '2025-01-21 19:37:25'),
+(46, 7, 'camera-and-light-equipment-for-shooting-at-affordable-price-7-image-2.jpeg', 0, '2025-01-21 19:37:25'),
+(47, 7, 'camera-and-light-equipment-for-shooting-at-affordable-price-7-image-3.jpg', 0, '2025-01-21 19:37:25'),
+(48, 7, 'camera-and-light-equipment-for-shooting-at-affordable-price-7-image-4.jpeg', 0, '2025-01-21 19:37:25'),
+(49, 8, 'high-definition-camera-with-stand-and-zone-effect-8-image-1.jpg', 1, '2025-01-21 19:43:30'),
+(50, 8, 'high-definition-camera-with-stand-and-zone-effect-8-image-2.jpg', 0, '2025-01-21 19:43:30'),
+(51, 8, 'high-definition-camera-with-stand-and-zone-effect-8-image-3.jpg', 0, '2025-01-21 19:43:30'),
+(52, 8, 'high-definition-camera-with-stand-and-zone-effect-8-image-4.jpg', 0, '2025-01-21 19:43:30'),
+(53, 8, 'high-definition-camera-with-stand-and-zone-effect-8-image-5.jpg', 0, '2025-01-21 19:43:30'),
+(54, 9, 'land-at-the-heart-of-the-two-for-sale-9-image-1.jpg', 1, '2025-01-23 10:47:34'),
+(55, 9, 'land-at-the-heart-of-the-two-for-sale-9-image-2.jpg', 0, '2025-01-23 10:47:34'),
+(56, 9, 'land-at-the-heart-of-the-two-for-sale-9-image-3.jpg', 0, '2025-01-23 10:47:34'),
+(57, 9, 'land-at-the-heart-of-the-two-for-sale-9-image-4.jpg', 0, '2025-01-23 10:47:34'),
+(58, 9, 'land-at-the-heart-of-the-two-for-sale-9-image-5.jpg', 0, '2025-01-23 10:47:34');
 
 -- --------------------------------------------------------
 
@@ -1175,11 +1228,30 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `first_name`, `last_name`, `email`, `password`, `phone`, `profile_image`, `role`, `status`, `is_premium_user`, `verification_token`, `token_expiration`, `email_verified`, `phone_verified`, `created_at`, `updated_at`) VALUES
 (1, 'Uwaezuoke', 'chimaobi', 'Elvisway4u@gmail.com', '$2y$10$RujUBwUZL2BCt5CRPMkJLOHBmNMhI.UU/eUjwrI8b9RXcrvcJcCu6', '08062091799', 'chima.jpg', 'user', 'active', 1, NULL, NULL, 1, 0, '2025-01-11 21:45:53', '2025-01-12 12:49:38'),
-(2, 'ikechukwu', 'marvelous', 'probeat8080@gmail.com', '$2y$10$/zKyKGFbyKhBRkKQt0UfCeK8Osd71p0oidSBC/Gm25sKWMDZiEjiy', '08062091700', NULL, 'user', 'active', 0, NULL, NULL, 1, 0, '2025-01-15 23:33:31', '2025-01-15 23:33:57');
+(2, 'ikechukwu', 'marvelous', 'probeat8080@gmail.com', '$2y$10$/zKyKGFbyKhBRkKQt0UfCeK8Osd71p0oidSBC/Gm25sKWMDZiEjiy', '08062091700', 'ike.jpg', 'user', 'active', 0, NULL, NULL, 1, 0, '2025-01-15 23:33:31', '2025-01-19 09:19:38');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_favourites`
+--
+
+CREATE TABLE `user_favourites` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `service_id` int(11) NOT NULL,
+  `added_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `ad_views`
+--
+ALTER TABLE `ad_views`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `categories`
@@ -1250,8 +1322,22 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `phone` (`phone`);
 
 --
+-- Indexes for table `user_favourites`
+--
+ALTER TABLE `user_favourites`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `service_id` (`service_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `ad_views`
+--
+ALTER TABLE `ad_views`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -1275,19 +1361,19 @@ ALTER TABLE `newsletter_subscribers`
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `services`
 --
 ALTER TABLE `services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `service_images`
 --
 ALTER TABLE `service_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `states`
@@ -1306,6 +1392,12 @@ ALTER TABLE `subcategories`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `user_favourites`
+--
+ALTER TABLE `user_favourites`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -1343,6 +1435,13 @@ ALTER TABLE `service_images`
 --
 ALTER TABLE `subcategories`
   ADD CONSTRAINT `subcategories_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`);
+
+--
+-- Constraints for table `user_favourites`
+--
+ALTER TABLE `user_favourites`
+  ADD CONSTRAINT `user_favourites_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `user_favourites_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

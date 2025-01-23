@@ -8,6 +8,13 @@ require_once '../include/error-handler.php';
 require_once '../include/input-cleaner.php';
 require_once '../include/email-sender.php';
 
+// Redirect logged-in user to index page
+if (isset($_SESSION['user_id'])) 
+{
+    header("Location: " . BASE_URL . "index.php");
+    exit();
+}
+
 $error = '';
 
 // Generate CSRF Token for the form
@@ -102,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit']))
                 $_SESSION['user_id'] = $userResult['id'];
                 $_SESSION['logged_in'] = true;
 
-                // Redirect to dashboard or home page
+                // Redirect to home page
                 header("Location: " . BASE_URL . "index.php");
                 exit();
             }

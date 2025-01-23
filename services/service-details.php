@@ -34,20 +34,15 @@ if (is_numeric($service_id) && $service_id > 0)
     {
         // Query to fetch the service details using the ID
         $query = "
-        SELECT s.id, s.slug, s.title, s.price, s.user_id, s.is_negotiable, s.description, c.slug AS category_slug, sc.slug AS subcategory_slug,u.first_name, u.last_name, u.phone,u.profile_image,
-            st.name AS state,lg.name AS lga
-        FROM 
-            services s
-        JOIN 
-            categories c ON s.category_id = c.id
-        JOIN 
-            subcategories sc ON s.subcategory_id = sc.id
-        JOIN 
-            users u ON s.user_id = u.id
-        JOIN 
-            states st ON s.state_id = st.id
-        JOIN 
-            lgas lg ON s.lga_id = lg.id
+        SELECT s.id, s.slug, s.title, s.price, s.user_id, s.is_negotiable, s.description, s.category_id, 
+            s.subcategory_id, c.slug AS category_slug, sc.slug AS subcategory_slug,u.first_name, u.last_name,
+            u.phone,u.profile_image, st.name AS state,lg.name AS lga
+        FROM services s
+        JOIN categories c ON s.category_id = c.id
+        JOIN subcategories sc ON s.subcategory_id = sc.id
+        JOIN users u ON s.user_id = u.id
+        JOIN states st ON s.state_id = st.id
+        JOIN lgas lg ON s.lga_id = lg.id
         WHERE s.id = :id";
 
         $stmt = $pdo->prepare($query);
@@ -63,14 +58,12 @@ if (is_numeric($service_id) && $service_id > 0)
 
             $_SESSION['expected_slug'] = $expected_slug;
 
-
             // Check if the URL format has changed and redirect to the correct URL (optional)
             if ($request_url !== $expected_slug) 
             {
                 header("Location: " . $expected_slug, true, 301);
                 exit();
             }
-
 
             // Fetch images for the service
             $query = "SELECT * FROM service_images WHERE service_id = :service_id";
@@ -117,8 +110,7 @@ if (is_numeric($service_id) && $service_id > 0)
                 $ratings_percentage[$star] = ($total_reviews > 0) ? ($count / $total_reviews) * 100 : 0;
             }
 
-
-            // Your query to check if the user has written a review
+            // Check if the user has written a review
             $user_has_reviewed = false; // Default to false
             $review_check_query = "SELECT COUNT(*) AS review_count FROM reviews WHERE service_id = :service_id AND user_id = :user_id";
             $check_stmt = $pdo->prepare($review_check_query);
@@ -137,25 +129,46 @@ if (is_numeric($service_id) && $service_id > 0)
             }
 
 
-            // Fetch similar adverts based on the same subcategory for similar services
-            try 
-            {
-                $query = "SELECT id, title, slug, price, is_negotiable FROM services WHERE subcategory_id = :subcategory_id AND id != :current_service_id ORDER BY RAND() LIMIT 10";
-                $stmt = $pdo->prepare($query);
-                $stmt->bindParam(':subcategory_id', $service['subcategory_slug'], PDO::PARAM_STR);
-                $stmt->bindParam(':current_service_id', $service_id, PDO::PARAM_INT);
-                $stmt->execute();
-                $similar_ads = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } 
-            catch (PDOException $e) 
-            {
-                error_log("Database error: " . $e->getMessage());
-                $similar_ads = [];
-            }
+            // Fetch similar services based on subcategory. First, get the total number of matching rows 
+            $total_rows_query = "SELECT COUNT(*) as total FROM services WHERE id != :current_service_id AND subcategory_id = :subcategory_id";
+            $stmt = $pdo->prepare($total_rows_query);
+            $stmt->execute(
+                [':current_service_id' => $service_id, ':subcategory_id' => $service['subcategory_id']]
+            );
+            $total_rows = $stmt->fetchColumn();
+
+            // Calculate a random offset
+            $random_offset = max(0, $total_rows - 10); // Ensure offset doesn't exceed available rows
+
+            // If $total_rows is smaller than 10, we don't need an offset, just use it directly
+            $random_start = ($random_offset > 0) ? rand(0, $random_offset) : 0;
+
+            // Fetch similar ads with random offset
+            $similar_ads_query = "
+                SELECT s.id, s.title, s.slug, s.price, s.created_at, s.is_negotiable AS negotiable, si.image_path 
+                FROM services s
+                LEFT JOIN service_images si ON s.id = si.service_id AND si.is_featured = 1
+                WHERE s.id != :current_service_id AND s.subcategory_id = :subcategory_id
+                LIMIT :start, 10";
+            $stmt = $pdo->prepare($similar_ads_query);
+            $stmt->bindValue(':current_service_id', $service_id, PDO::PARAM_INT);
+            $stmt->bindValue(':subcategory_id', $service['subcategory_id'], PDO::PARAM_INT);
+            $stmt->bindValue(':start', $random_start, PDO::PARAM_INT);
+            $stmt->execute();
+            $similar_ads = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
-            //Fetch other ads from the same advertiser
-            $currentSlug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
+
+
+
+
+
+
+
+
+
+            // Fetch more ads by the same advertiser excluding the current ad
+            $currentSlug = isset($_GET['slug']) ? trim($_GET['slug']) : ''; //Title slug for the current ad 
 
             // Fetch current ad details using slug
             $query = "SELECT id, user_id, category_id FROM services WHERE slug = ?";
@@ -165,22 +178,109 @@ if (is_numeric($service_id) && $service_id > 0)
 
             if (!$currentAd) 
             {
-                header("Location: /404.html");
-                exit;
+                header("Location: " . BASE_URL . "index.php");
+                exit();
             }
 
             $userId = $currentAd['user_id'];
             $currentAdId = $currentAd['id'];
 
-            // Fetch more ads by the same advertiser excluding the current ad
-            $sql = "SELECT id, title, slug, price, created_at 
-                    FROM services 
-                    WHERE user_id = ? AND id != ? 
-                    ORDER BY created_at DESC LIMIT 5";
+            
+            $sql = "SELECT s.is_negotiable AS negotiable, s.id, s.title,s.description, s.slug, s.price, 
+            s.created_at, si.image_path, c.slug AS category_slug, sc.slug AS subcategory_slug
+            FROM services s
+            LEFT JOIN service_images si ON s.id = si.service_id AND si.is_featured = 1
+            LEFT JOIN categories c ON s.category_id = c.id
+            LEFT JOIN subcategories sc ON s.subcategory_id = sc.id
+            WHERE s.user_id = ? AND s.id != ? 
+            ORDER BY s.created_at DESC 
+            LIMIT 6";
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$userId, $currentAdId]);
             $moreAds = $stmt->fetchAll();
+
+
+
+           // Checking the number of ad views for the current ad
+            function getUserIP() 
+            {
+                if (!empty($_SERVER['HTTP_CLIENT_IP'])) 
+                {
+                    return $_SERVER['HTTP_CLIENT_IP']; // IP from shared internet
+                } 
+                elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) 
+                {
+                    return $_SERVER['HTTP_X_FORWARDED_FOR']; // IP from a proxy
+                } 
+                else 
+                {
+                    return $_SERVER['REMOTE_ADDR']; // IP from the remote address
+                }
+            }
+
+            $ip_address = getUserIP();
+
+            $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null; // Current logged-in user
+
+            // Check if the view is unique within the last hour
+            $checkQuery = "SELECT id, last_viewed FROM ad_views 
+                           WHERE service_id = :service_id 
+                           AND (user_id = :user_id OR ip_address = :ip_address) 
+                           AND last_viewed > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
+
+            $stmt = $pdo->prepare($checkQuery);
+            $stmt->execute([
+                ':service_id' => $service_id,
+                ':user_id' => $user_id,
+                ':ip_address' => $ip_address
+            ]);
+
+            // If no recent view exists, insert a new view
+            if ($stmt->rowCount() == 0) 
+            {
+                $insertQuery = "INSERT INTO ad_views (service_id, user_id, ip_address) 
+                                VALUES (:service_id, :user_id, :ip_address)";
+                $stmt = $pdo->prepare($insertQuery);
+                $stmt->execute([
+                    ':service_id' => $service_id,
+                    ':user_id' => $user_id,
+                    ':ip_address' => $ip_address
+                ]);
+            } 
+            else 
+            {
+                // Update the last viewed timestamp if the interval is greater than 1 hour
+                $viewData = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (strtotime($viewData['last_viewed']) <= strtotime('-1 hour')) 
+                {
+                    $updateQuery = "UPDATE ad_views 
+                                    SET view_count = view_count + 1, 
+                                        last_viewed = NOW() 
+                                    WHERE service_id = :service_id 
+                                    AND (user_id = :user_id OR ip_address = :ip_address)";
+                    $stmt = $pdo->prepare($updateQuery);
+                    $stmt->execute([
+                        ':service_id' => $service_id,
+                        ':user_id' => $user_id,
+                        ':ip_address' => $ip_address
+                    ]);
+                }
+            }
+
+            // Fetch total views to display on UI
+            $totalViewsQuery = "SELECT SUM(view_count) AS total_views 
+                                FROM ad_views 
+                                WHERE service_id = :service_id";
+
+            $stmt = $pdo->prepare($totalViewsQuery);
+            $stmt->execute([':service_id' => $service_id]);
+
+            // Fetch the total views
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $totalViews = $result['total_views'] ?? 0; // Default to 0 if no views found
+
+
         } 
         else 
         {
@@ -218,9 +318,6 @@ else
 
 
 <section class="service-details">
-
-
-
 
     <div class="breadcrumb">
         <div class="breadcrumb-container">
@@ -282,11 +379,11 @@ else
                     <h2>
                         <?php echo CURRENCY_TYPE_SYMBOLE . ' ' . number_format($service['price'], 2); ?>
                     </h2>
-                    <p> 
-                        <?php $service['is_negotiable'] ? 'yes' : 'no'; ?>
-                        <i class="fas fa-handshake"></i>
-                        <?php echo $service['is_negotiable'] ? 'Negotiable' : 'Not Negotiable'; ?>
-                    </p>
+                    <?php if ($service['is_negotiable'] == 'yes'): ?>
+                            <p class="negotiable yes">Negotiable</p>
+                    <?php else: ?>
+                            <p class="negotiable no">Not Negotiable</p>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -462,8 +559,9 @@ else
                     <a href="#"><i class="fas fa-flag"></i>Report Abuse</a>
                     <a href="#"><i class="fas fa-plus-circle"></i>Post Your Ads</a>
                 </p>
-                <p class="stat-counter view-counter"><i class="fas fa-eye" title="Views"></i>1234</p>
-                <p class="stat-counter like-counter"><i class="fas fa-thumbs-up" title="Likes"></i>567</p>
+                <p class="stat-counter view-counter">
+                    <i class="fas fa-eye" title="Views"></i><?php echo $totalViews; ?>
+                </p>
             </div>
 
             <!-- Write review link -->
@@ -505,54 +603,71 @@ else
 
 
     <!-- Similar Adverts Section -->
-    <div class="similar-adverts">
-        <h2>Similar Adverts</h2>
-        <div class="similar-adverts-container">
-
-            <?php if (!empty($similar_ads)): ?>
-                <?php foreach ($similar_ads as $ad): ?>
-                    <div class="similar-ad-item">
-                        <a href="<?php echo BASE_URL . $service['category_slug'] . '/' . $service['subcategory_slug'] . '/' . $ad['slug'] . '-' . $ad['id'] . '.html'; ?>">
-                            <div class="similar-ad-info">
-                                <h3><?php echo $ad['title']; ?></h3>
-                                <p>
-                                    <?php echo CURRENCY_TYPE_SYMBOLE . ' ' . number_format($ad['price'], 2); ?>
-                                    <?php echo $ad['is_negotiable'] ? 'Negotiable' : 'Not Negotiable'; ?>
-                                </p>
-                            </div>
-                        </a>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p>No similar adverts available.</p>
-            <?php endif; ?>
-
+    <?php if (!empty($similar_ads)): ?>
+        <section class="featured-section">
+        <h2>Similar Services</h2>
+        <div class="services-container">
+            <?php foreach ($similar_ads as $similar_ad): ?>
+                <div class="service-card">
+                    <a href="<?php echo BASE_URL . $service['category_slug'] . '/' . $service['subcategory_slug'] . '/' . $similar_ad['slug'] . '-' . $similar_ad['id'] . '.html'; ?>">
+                        <!-- Featured Image -->
+                        <div class="service-img">
+                            <img src="<?php echo BASE_URL . 'uploads/services-images/' . ($similar_ad['image_path'] ?: 'default-image.jpg'); ?>" 
+                                 alt="<?php echo $similar_ad['title']; ?>">
+                        </div>
+                        
+                        <div class="service-text">
+                            <h3><?php echo substr($similar_ad['title'], 0, 24); ?>...</h3>
+                            <p class="price">
+                                <?php echo $similar_ad['price'] ? CURRENCY_TYPE_SYMBOLE . number_format(
+                                    $similar_ad['price'], 2) : 'Price on Request'; ?>
+                            </p>
+                            <?php if ($similar_ad['negotiable'] == 'yes'): ?>
+                                <p class="negotiable yes">Negotiable</p>
+                            <?php else: ?>
+                                <p class="negotiable no">Not Negotiable</p>
+                            <?php endif; ?>
+                        </div>
+                    </a>
+                </div>
+            <?php endforeach; ?>
         </div>
-    </div>
+        </section>
+    <?php endif; ?>
 
+    <!-- Ads from the same advertiser -->
+    <?php if (!empty($moreAds)): ?>
+        <section class="more-ads">
+          <h2>More Ads from This Advertiser</h2>
+          <div class="ad-list">
+            <?php foreach ($moreAds as $ad): ?>
+                <div class="ad-item">
+                    <a href="<?php echo BASE_URL . $ad['category_slug'] . '/' . $ad['subcategory_slug'] . '/' . $ad['slug'] . '-' . $ad['id'] . '.html'; ?>">
+                        <div class="ad-list-img">
+                            <img src="<?= BASE_URL . 'uploads/services-images/' . $ad['image_path']; ?>" 
+                                 alt="<?= $ad['title']; ?>">
+                        </div>
+                        <div class="ad-details">
+                            <h3><?php echo substr($ad['title'], 0, 25); ?>...</h3>
 
+                            <p class="price">
+                                <?php echo $ad['price'] ? CURRENCY_TYPE_SYMBOLE . number_format($ad['price'], 2) : 'Price on Request'; ?>
+                            </p>
 
+                            <p><?php echo substr($ad['description'], 0, 40); ?>...</p>
 
-
-
-<!-- Ads from the same advertiser -->
-<div class="more-ads-section">
-    <h3>More Ads from This Advertiser</h3>
-    <ul class="more-ads-list">
-        <?php foreach ($moreAds as $ad): ?>
-            <li>
-                <!-- Slug-based URL -->
-                <a href="<?php echo BASE_URL; ?>services/service-details/<?= $ad['slug']; ?>.html">
-                    <div class="ad-item">
-                        <h4><?= htmlspecialchars($ad['title']); ?></h4>
-                        <p>Price: $<?= number_format($ad['price'], 2); ?></p>
-                        <small>Posted on: <?= date('d M Y', strtotime($ad['created_at'])); ?></small>
-                    </div>
-                </a>
-            </li>
-        <?php endforeach; ?>
-    </ul>
-</div>
+                            <?php if ($ad['negotiable'] == 'yes'): ?>
+                                <p class="negotiable yes">Negotiable</p>
+                            <?php else: ?>
+                                <p class="negotiable no">Not Negotiable</p>
+                            <?php endif; ?>
+                        </div>
+                    </a>
+                </div>
+            <?php endforeach; ?>
+          </div>
+        </section>
+    <?php endif; ?>
 
 </section>
 

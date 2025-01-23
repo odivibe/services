@@ -8,6 +8,13 @@ require_once '../include/error-handler.php';
 require_once '../include/input-cleaner.php';
 require_once '../include/email-sender.php';
 
+// Redirect logged-in user to index page
+if (isset($_SESSION['user_id'])) 
+{
+    header("Location: " . BASE_URL . "index.php");
+    exit();
+}
+
 // CSRF Token
 if (empty($_SESSION['csrf_token'])) 
 {

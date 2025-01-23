@@ -37,7 +37,7 @@ $states = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <!-- Title -->
         <div class="form-group">
             <label for="title">Title:<span class="required">*</span></label>
-            <input type="text" name="title" id="title" maxlength="150" required>
+            <input type="text" name="title" id="title" maxlength="100" required>
             <div id="title-error" class="error-message"></div> 
         </div>
 
@@ -83,7 +83,7 @@ $states = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <!-- Description -->
         <div class="form-group">
             <label for="description">Service Description:<span class="required">*</span></label>
-            <textarea name="description" id="description" cols="50" rows="10" required></textarea>
+            <textarea name="description" id="description" cols="50" rows="10" maxlength="300" required></textarea>
             <div id="description-error" class="error-message"></div>
         </div>
 
