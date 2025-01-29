@@ -4,10 +4,11 @@ $page_title = 'About us page';
 session_start();
 
 require_once  'include/config.php';
+require_once 'include/db.php';
 require_once 'include/header.php';
 ?>
 
-<main>
+<main class="body-container">
     <div class="about-container">
         <h1>About Us</h1>
         <p>Welcome to [Your Website Name], your go-to platform for classified ads and services!</p>

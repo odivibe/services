@@ -3,10 +3,13 @@
 session_start();
 
 require_once  'include/config.php';
-require_once 'include/header.php';
+require_once 'include/db.php';
+
 ?>
 
-<main>
+<?php require_once 'include/header.php'; ?>
+
+<main class="body-container">
     <div class="privacy-policy-container">
         <h1>Privacy Policy</h1>
 

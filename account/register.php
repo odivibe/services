@@ -184,97 +184,98 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
 
 <?php require_once '../include/header.php'; ?>
 
-<div class="form-container">
-    <h1>Sign Up</h1>
-    <form method="POST" enctype="multipart/form-data" id="signup_form">
+<main class="body-container">
+    <div class="form-container">
+        <h1>Sign Up</h1>
+        <form method="POST" enctype="multipart/form-data" id="signup_form">
 
-        <!-- CSRF Token -->
-        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+            <!-- CSRF Token -->
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
-        <!-- First Name -->
-        <div class="form-group">
-            <label for="signup_fname">First Name: <span class="required">*</span></label>
-            <input type="text" name="signup_fname" id="signup_fname" placeholder="Enter first name" required>
-            <div id="signup_fname_error" class="error">
-                <?php echo $errorMessages['signup_fname']; ?>
+            <!-- First Name -->
+            <div class="form-group">
+                <label for="signup_fname">First Name: <span class="required">*</span></label>
+                <input type="text" name="signup_fname" id="signup_fname" placeholder="Enter first name" required>
+                <div id="signup_fname_error" class="error">
+                    <?php echo $errorMessages['signup_fname']; ?>
+                </div>
             </div>
-        </div>
 
-        <!-- Last Name -->
-        <div class="form-group">
-            <label for="signup_lname">Last Name: <span class="required">*</span></label>
-            <input type="text" name="signup_lname" id="signup_lname" placeholder="Enter last name" required>
-            <div id="signup_lname_error" class="error">
-                <?php echo $errorMessages['signup_lname']; ?>
+            <!-- Last Name -->
+            <div class="form-group">
+                <label for="signup_lname">Last Name: <span class="required">*</span></label>
+                <input type="text" name="signup_lname" id="signup_lname" placeholder="Enter last name" required>
+                <div id="signup_lname_error" class="error">
+                    <?php echo $errorMessages['signup_lname']; ?>
+                </div>
             </div>
-        </div>
 
-        <!-- Phone -->
-        <div class="form-group">
-            <label for="signup_phone">Phone: <span class="required">*</span></label>
-            <input type="text" name="signup_phone" id="signup_phone" placeholder="Eg, 08062xxxxxx" required>
-            <div id="signup_phone_error" class="error">
-                <?php echo $errorMessages['signup_phone']; ?>
+            <!-- Phone -->
+            <div class="form-group">
+                <label for="signup_phone">Phone: <span class="required">*</span></label>
+                <input type="text" name="signup_phone" id="signup_phone" placeholder="Eg, 08062xxxxxx" required>
+                <div id="signup_phone_error" class="error">
+                    <?php echo $errorMessages['signup_phone']; ?>
+                </div>
             </div>
-        </div>
 
-        <!-- Email -->
-        <div class="form-group">
-            <label for="signup_email">Email: <span class="required">*</span></label>
-            <input type="email" name="signup_email" id="signup_email" placeholder="Enter email" required>
-            <div id="signup_email_error" class="error">
-                <?php echo $errorMessages['signup_email']; ?>
+            <!-- Email -->
+            <div class="form-group">
+                <label for="signup_email">Email: <span class="required">*</span></label>
+                <input type="email" name="signup_email" id="signup_email" placeholder="Enter email" required>
+                <div id="signup_email_error" class="error">
+                    <?php echo $errorMessages['signup_email']; ?>
+                </div>
             </div>
-        </div>
 
-        <!-- Password -->
-        <div class="form-group">
-            <label for="signup_password">Password: <span class="required">*</span></label>
-            <input type="password" name="signup_password" id="signup_password" placeholder="Enter password" required>
-            <div id="signup_password_error" class="error">
-                <?php echo $errorMessages['signup_password']; ?>
+            <!-- Password -->
+            <div class="form-group">
+                <label for="signup_password">Password: <span class="required">*</span></label>
+                <input type="password" name="signup_password" id="signup_password" placeholder="Enter password" required>
+                <div id="signup_password_error" class="error">
+                    <?php echo $errorMessages['signup_password']; ?>
+                </div>
+                <ul id="password-requirements">
+                    <li id="uppercase" class="requirement">At least one uppercase letter</li>
+                    <li id="lowercase" class="requirement">At least one lowercase letter</li>
+                    <li id="number" class="requirement">At least one number</li>
+                    <li id="special" class="requirement">At least one special character</li>
+                </ul>
             </div>
-            <ul id="password-requirements">
-                <li id="uppercase" class="requirement">At least one uppercase letter</li>
-                <li id="lowercase" class="requirement">At least one lowercase letter</li>
-                <li id="number" class="requirement">At least one number</li>
-                <li id="special" class="requirement">At least one special character</li>
-            </ul>
-        </div>
 
-        <!-- Confirm Password -->
-        <div class="form-group">
-            <label for="signup_confirm_password">Confirm Password: <span class="required">*</span></label>
-            <input type="password" name="signup_confirm_password" id="signup_confirm_password" placeholder="Confirm password" required>
-            <div id="signup_confirm_password_error" class="error">
-                <?php echo $errorMessages['signup_confirm_password']; ?>
+            <!-- Confirm Password -->
+            <div class="form-group">
+                <label for="signup_confirm_password">Confirm Password: <span class="required">*</span></label>
+                <input type="password" name="signup_confirm_password" id="signup_confirm_password" placeholder="Confirm password" required>
+                <div id="signup_confirm_password_error" class="error">
+                    <?php echo $errorMessages['signup_confirm_password']; ?>
+                </div>
             </div>
-        </div>
 
-        <!-- Terms and Conditions -->
-        <div class="form-group terms-group">
-            <input type="checkbox" name="signup_terms" id="signup_terms" required>
-            <label for="signup_terms">
-                <span class="required">*</span> I agree to the 
-                <a href="<?php echo BASE_URL; ?>terms-of-service.php" target="_blank">Terms of Service</a> and 
-                <a href="<?php echo BASE_URL; ?>privacy-policy.php" target="_blank">Privacy Policy</a>.
-            </label>
-            <div id="signup_terms_error" class="error"><?php echo $errorMessages['signup_terms']; ?></div>
-        </div>
+            <!-- Terms and Conditions -->
+            <div class="form-group terms-group">
+                <input type="checkbox" name="signup_terms" id="signup_terms" required>
+                <label for="signup_terms">
+                    <span class="required">*</span> I agree to the 
+                    <a href="<?php echo BASE_URL; ?>terms-of-service.php" target="_blank">Terms of Service</a> and 
+                    <a href="<?php echo BASE_URL; ?>privacy-policy.php" target="_blank">Privacy Policy</a>.
+                </label>
+                <div id="signup_terms_error" class="error"><?php echo $errorMessages['signup_terms']; ?></div>
+            </div>
 
-        <!-- Submit -->
-        <div class="form-group">
-            <button type="submit" name="signup_submit" id="login_submit">Submit</button>
-        </div>
+            <!-- Submit -->
+            <div class="form-group">
+                <button type="submit" name="signup_submit" id="login_submit">Submit</button>
+            </div>
 
-        <!-- Links -->
-        <div class="form-links">
-            <p>Already have an account? <a href="<?php echo BASE_URL; ?>account/login.php">Login here</a>.</p>
-            <p><a href="<?php echo BASE_URL; ?>account/forgot-password.php">Forgot your password?</a></p>
-        </div>
-    </form>
-</div>
-
+            <!-- Links -->
+            <div class="form-links">
+                <p>Already have an account? <a href="<?php echo BASE_URL; ?>account/login.php">Login here</a>.</p>
+                <p><a href="<?php echo BASE_URL; ?>account/forgot-password.php">Forgot your password?</a></p>
+            </div>
+        </form>
+    </div>
+</main>
 <script>
 
 // Form submission

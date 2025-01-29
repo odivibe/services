@@ -74,39 +74,41 @@ catch (PDOException $e)
 
 <?php include '../include/header.php'; ?>
 
-<!-- Ads Section -->
-<section class="featured-services">
-    <h2><?php echo $result['subcategory_name']; ?> - Ads</h2>
-    
-    <?php if ($services): ?>
-        <div class="services-container">
-            <?php foreach ($services as $service): ?>
-                <?php
-                // Build dynamic slug for service details page
-                $serviceSlug = BASE_URL . $categorySlug . '/' . $subcategorySlug . '/' . $service['slug'] . '-' . $service['id'] . '.html';
-                ?>
-                <div class="service-card">
-                    <a href="<?php echo $serviceSlug; ?>">
-                        <div class="service-img">
-                            <img src="<?php echo BASE_URL . 'uploads/services-images/' . $service['image_path']; ?>" alt="<?php echo $service['title']; ?>">
-                        </div>
-                        <div class="service-text">
-                            <h3><?php echo $service['title']; ?></h3>
-                            <p class="price">
-                                <?php echo $service['price'] ? CURRENCY_TYPE_SYMBOLE . number_format($service['price'], 2) : 'Price on Request'; ?>
-                            </p>
-                            <p><?php echo substr($service['description'], 0, 35) . '...'; ?></p>
-                            <p class="negotiable <?php echo $service['is_negotiable'] ? 'yes' : 'no'; ?>">
-                                <?php echo $service['is_negotiable'] ? 'Negotiable' : 'Not Negotiable'; ?>
-                            </p>
-                        </div>
-                    </a>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php else: ?>
-        <p class="no-ads-available">No ads available in this subcategory.</p>
-    <?php endif; ?>
-</section>
+<main class="body-container">
+    <!-- Ads Section -->
+    <section class="featured-services">
+        <h2><?php echo $result['subcategory_name']; ?> - Ads</h2>
+        
+        <?php if ($services): ?>
+            <div class="services-container">
+                <?php foreach ($services as $service): ?>
+                    <?php
+                    // Build dynamic slug for service details page
+                    $serviceSlug = BASE_URL . $categorySlug . '/' . $subcategorySlug . '/' . $service['slug'] . '-' . $service['id'] . '.html';
+                    ?>
+                    <div class="service-card">
+                        <a href="<?php echo $serviceSlug; ?>">
+                            <div class="service-img">
+                                <img src="<?php echo BASE_URL . 'uploads/services-images/' . $service['image_path']; ?>" alt="<?php echo $service['title']; ?>">
+                            </div>
+                            <div class="service-text">
+                                <h3><?php echo $service['title']; ?></h3>
+                                <p class="price">
+                                    <?php echo $service['price'] ? CURRENCY_TYPE_SYMBOLE . number_format($service['price'], 2) : 'Price on Request'; ?>
+                                </p>
+                                <p><?php echo substr($service['description'], 0, 35) . '...'; ?></p>
+                                <p class="negotiable <?php echo $service['is_negotiable'] ? 'yes' : 'no'; ?>">
+                                    <?php echo $service['is_negotiable'] ? 'Negotiable' : 'Not Negotiable'; ?>
+                                </p>
+                            </div>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <p class="no-ads-available">No ads available in this subcategory.</p>
+        <?php endif; ?>
+    </section>
+</main>
 
 <?php include '../include/footer.php'; ?>

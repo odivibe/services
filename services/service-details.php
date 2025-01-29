@@ -5,6 +5,7 @@ session_start();
 require_once '../include/config.php';
 require_once '../include/db.php';
 
+// Check if the user is logged in
 $userLoggedIn = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null; // current logged in user
 
 // Get URL parameters
@@ -12,6 +13,12 @@ $service_id = isset($_GET['id']) ? $_GET['id'] : '';
 $title_slug = isset($_GET['slug']) ? $_GET['slug'] : '';
 $category_slug = isset($_GET['category']) ? $_GET['category'] : '';
 $subcategory_slug = isset($_GET['subcategory']) ? $_GET['subcategory'] : '';
+
+// Check if the service is already in favourites on page load
+/*$stmt = $pdo->prepare("SELECT id FROM user_favourites WHERE user_id = :user_id AND service_id = :service_id");
+$stmt->execute([':user_id' => $userLoggedIn, ':service_id' => $service_id]);
+$is_favourite = $stmt->rowCount() > 0;*/
+
 
 // Get the owner id(advertiser)
 $stmt = $pdo->prepare("SELECT user_id FROM services WHERE id = :service_id");
@@ -158,15 +165,6 @@ if (is_numeric($service_id) && $service_id > 0)
             $similar_ads = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
-
-
-
-
-
-
-
-
-
             // Fetch more ads by the same advertiser excluding the current ad
             $currentSlug = isset($_GET['slug']) ? trim($_GET['slug']) : ''; //Title slug for the current ad 
 
@@ -201,7 +199,6 @@ if (is_numeric($service_id) && $service_id > 0)
             $moreAds = $stmt->fetchAll();
 
 
-
            // Checking the number of ad views for the current ad
             function getUserIP() 
             {
@@ -230,10 +227,7 @@ if (is_numeric($service_id) && $service_id > 0)
                            AND last_viewed > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
 
             $stmt = $pdo->prepare($checkQuery);
-            $stmt->execute([
-                ':service_id' => $service_id,
-                ':user_id' => $user_id,
-                ':ip_address' => $ip_address
+            $stmt->execute([':service_id' => $service_id,':user_id' => $user_id,':ip_address' => $ip_address
             ]);
 
             // If no recent view exists, insert a new view
@@ -242,11 +236,8 @@ if (is_numeric($service_id) && $service_id > 0)
                 $insertQuery = "INSERT INTO ad_views (service_id, user_id, ip_address) 
                                 VALUES (:service_id, :user_id, :ip_address)";
                 $stmt = $pdo->prepare($insertQuery);
-                $stmt->execute([
-                    ':service_id' => $service_id,
-                    ':user_id' => $user_id,
-                    ':ip_address' => $ip_address
-                ]);
+                $stmt->execute([':service_id' => $service_id,':user_id' => $user_id,':ip_address' => 
+                    $ip_address]);
             } 
             else 
             {
@@ -260,11 +251,8 @@ if (is_numeric($service_id) && $service_id > 0)
                                     WHERE service_id = :service_id 
                                     AND (user_id = :user_id OR ip_address = :ip_address)";
                     $stmt = $pdo->prepare($updateQuery);
-                    $stmt->execute([
-                        ':service_id' => $service_id,
-                        ':user_id' => $user_id,
-                        ':ip_address' => $ip_address
-                    ]);
+                    $stmt->execute([':service_id' => $service_id,':user_id' => $user_id,':ip_address' => 
+                        $ip_address]);
                 }
             }
 
@@ -316,8 +304,7 @@ else
 
 <?php include '../include/header.php'; ?>
 
-
-<section class="service-details">
+<main class="body-container">
 
     <div class="breadcrumb">
         <div class="breadcrumb-container">
@@ -339,272 +326,283 @@ else
         </div>
     </div>
 
+    <section>
+        <div class="service-details-container">
 
+            <!-- Left Container -->
+            <div class="left-container">
+                <div class="main-image">
+                    <?php if (!empty($images)): ?>
+                        <img id="featured-image" src="<?php echo BASE_URL . 'uploads/services-images/' . $images[0]['image_path']; ?>" alt="Main image">
+                    <?php endif; ?>
+                </div>
 
-
-    <div class="service-details-container">
-        <!-- Left Container -->
-        <div class="left-container">
-
-            <div class="main-image">
-                <?php if (!empty($images)): ?>
-                    <img id="featured-image" src="<?php echo BASE_URL . 'uploads/services-images/' . $images[0]['image_path']; ?>" alt="Main image">
-                <?php endif; ?>
-            </div>
-
-            <div class="thumbnail-gallery">
-                
-                <?php foreach ($images as $image): ?>
-                    <div class="thumbnail-item">
-                        <img src="<?php echo BASE_URL . 'uploads/services-images/' . $image['image_path']; ?>" alt="Thumbnail" onclick="changeImage(this.src)">
-                    </div>
-                <?php endforeach; ?>
-                
-            </div>
-            <div class="next-prev">
-                <button class="prev-btn" onclick="changeImageByIndex('prev')"> < </button>
-                <button class="next-btn" onclick="changeImageByIndex('next')"> > </button>
-            </div>
-
-            <div class="s-details service-details-info">
-                <div class="title-description">
-                    <h1><?php echo $service['title']; ?></h1>
-                    <hr>
-                    <h2>Description</h2>
-                    <p><?php echo $service['description']; ?></p>
-                    <hr>
+                <div class="thumbnail-gallery">
+                    <?php foreach ($images as $image): ?>
+                        <div class="thumbnail-item">
+                            <img src="<?php echo BASE_URL . 'uploads/services-images/' . $image['image_path']; ?>" alt="Thumbnail" onclick="changeImage(this.src)">
+                        </div>
+                    <?php endforeach; ?>
                 </div>
                 
-                <div class="price-negotiable">
+                <div class="next-prev">
+                    <button class="prev-btn" onclick="changeImageByIndex('prev')"> < </button>
+                    <button class="next-btn" onclick="changeImageByIndex('next')"> > </button>
+                </div>
+
+                
+
+                <div class="s-details service-title">
+                    <h1><?php echo $service['title']; ?></h1>
+                </div>
+
+                <div class="s-details service-description">
+                    <h2>Description</h2>
+                    <p><?php echo $service['description']; ?></p>
+                </div>
+
+                    <!--<div class="favourite-icon" id="favourite-icon-container" >
+                        <form action="" enctype="multipart/form-data" method="POST" id="favourite-form">
+                            <input type="hidden" name="service_id" value="<?php //echo $service_id; ?>">
+                            <button type="submit" id="toggle-favourite-btn" style="background: none; border: none; cursor: pointer;">
+                                <?php //if ($is_favourite): ?>
+                                    <i class="fas fa-heart" style="color: red;"></i>
+                                <?php //else: ?>
+                                    <i class="far fa-heart" style="color: gray;"></i>
+                                <?php //endif; ?>
+                            </button>
+                        </form>
+                    </div>-->
+
+                <div class="s-details price-negotiable">
                     <h2>
                         <?php echo CURRENCY_TYPE_SYMBOLE . ' ' . number_format($service['price'], 2); ?>
                     </h2>
                     <?php if ($service['is_negotiable'] == 'yes'): ?>
-                            <p class="negotiable yes">Negotiable</p>
+                            <p class="negotiable yes"><i class="fas fa-tag"></i> Negotiable</p>
                     <?php else: ?>
-                            <p class="negotiable no">Not Negotiable</p>
+                            <p class="negotiable no"><i class="fas fa-tag"></i> Not Negotiable</p>
                     <?php endif; ?>
                 </div>
-            </div>
 
 
-            <!-- Reviews Section -->
-            <div class="s-details reviews-section-container">
+                <!-- Reviews Section -->
+                <div class="s-details reviews-section-container">
+                    <!-- Dynamic Star Rating -->
+                    <div class="star-container">
 
-                <!-- Dynamic Star Rating -->
-                <div class="star-container">
-
-                    <h3>Star Total Rating</h3>
-                    <div class="star-rating">
-                        <p><?php echo round($average_rating, 1); ?> / 5</p>
-                        <div class="stars-outer">
-                            <div class="stars-inner"></div>
+                        <h3>Star Total Rating</h3>
+                        <div class="star-rating">
+                            <p><?php echo round($average_rating, 1); ?> / 5</p>
+                            <div class="stars-outer">
+                                <div class="stars-inner"></div>
+                            </div>
+                            <p class="number-of-review"><?php echo $total_reviews. ' verified ratings'; ?></p>
                         </div>
-                        <p class="number-of-review"><?php echo $total_reviews. ' verified ratings'; ?></p>
+
+                        <div class="star-progress-container">
+                            <div class="star-progress-row">
+                                <span>5 <i class="fas fa-star"></i></span>
+                                <span>(<?php echo $ratings_count[5] ?? 0; ?>)</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: <?php echo $ratings_percentage[5] ?? 0; ?>%;"></div>
+                                </div>
+                            </div>
+                            <div class="star-progress-row">
+                                <span>4 <i class="fas fa-star"></i></span>
+                                <span>(<?php echo $ratings_count[4] ?? 0; ?>)</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: <?php echo $ratings_percentage[4] ?? 0; ?>%;"></div>
+                                </div>
+                            </div>
+                            <div class="star-progress-row">
+                                <span>3 <i class="fas fa-star"></i></span>
+                                <span>(<?php echo $ratings_count[3] ?? 0; ?>)</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: <?php echo $ratings_percentage[3] ?? 0; ?>%;"></div>
+                                </div>
+                            </div>
+                            <div class="star-progress-row">
+                                <span>2 <i class="fas fa-star"></i></span>
+                                <span>(<?php echo $ratings_count[2] ?? 0; ?>)</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: <?php echo $ratings_percentage[2] ?? 0; ?>%;"></div>
+                                </div>
+                            </div>
+                            <div class="star-progress-row">
+                                <span>1 <i class="fas fa-star"></i></span>
+                                <span>(<?php echo $ratings_count[1] ?? 0; ?>)</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: <?php echo $ratings_percentage[1] ?? 0; ?>%;"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="star-progress-container">
-                        <div class="star-progress-row">
-                            <span>5 <i class="fas fa-star"></i></span>
-                            <span>(<?php echo $ratings_count[5] ?? 0; ?>)</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: <?php echo $ratings_percentage[5] ?? 0; ?>%;"></div>
-                            </div>
-                        </div>
-                        <div class="star-progress-row">
-                            <span>4 <i class="fas fa-star"></i></span>
-                            <span>(<?php echo $ratings_count[4] ?? 0; ?>)</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: <?php echo $ratings_percentage[4] ?? 0; ?>%;"></div>
-                            </div>
-                        </div>
-                        <div class="star-progress-row">
-                            <span>3 <i class="fas fa-star"></i></span>
-                            <span>(<?php echo $ratings_count[3] ?? 0; ?>)</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: <?php echo $ratings_percentage[3] ?? 0; ?>%;"></div>
-                            </div>
-                        </div>
-                        <div class="star-progress-row">
-                            <span>2 <i class="fas fa-star"></i></span>
-                            <span>(<?php echo $ratings_count[2] ?? 0; ?>)</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: <?php echo $ratings_percentage[2] ?? 0; ?>%;"></div>
-                            </div>
-                        </div>
-                        <div class="star-progress-row">
-                            <span>1 <i class="fas fa-star"></i></span>
-                            <span>(<?php echo $ratings_count[1] ?? 0; ?>)</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: <?php echo $ratings_percentage[1] ?? 0; ?>%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <div class="reviews-section">
+                        <h3>Review Comments</h3>
+                        <?php if ($total_reviews > 0): ?>
+                            <?php foreach ($reviews as $review): ?>
+                                <div class="review">
+                                    <p class="review-title"><?php echo $review['title']; ?></p>
+                                    <p class="review-body"><?php echo $review['comment']; ?></p>
+                                    <p> 
+                                        <span class="reviewer-star-rating-number">
+                                            <?php echo $review['rating']; ?>/5
+                                        </span>
 
-                <div class="reviews-section">
-                    <h3>Review Comments</h3>
-                    <?php if ($total_reviews > 0): ?>
-                        <?php foreach ($reviews as $review): ?>
-                            <div class="review">
-                                <p class="review-title"><?php echo $review['title']; ?></p>
-                                <p class="review-body"><?php echo $review['comment']; ?></p>
-                                <p> 
-                                    <span class="reviewer-star-rating-number">
-                                        <?php echo $review['rating']; ?>/5
-                                    </span>
+                                        <span class="stars">
+                                            <?php
+                                            // Total number of stars (e.g., 5 stars)
+                                            $totalStars = 5;
 
-                                    <span class="stars">
-                                        <?php
-                                        // Total number of stars (e.g., 5 stars)
-                                        $totalStars = 5;
-
-                                        // Display filled and unfilled stars based on rating
-                                        for ($i = 1; $i <= $totalStars; $i++) 
-                                        {
-                                            if ($i <= $review['rating']) 
+                                            // Display filled and unfilled stars based on rating
+                                            for ($i = 1; $i <= $totalStars; $i++) 
                                             {
-                                                echo '<i class="fas fa-star filled-star"></i>'; // Filled star
-                                            } 
-                                            else 
-                                            {
-                                                echo '<i class="fas fa-star unfilled-star"></i>'; // Unfilled star with gray gradient fill
+                                                if ($i <= $review['rating']) 
+                                                {
+                                                    echo '<i class="fas fa-star filled-star"></i>'; // Filled star
+                                                } 
+                                                else 
+                                                {
+                                                    echo '<i class="fas fa-star unfilled-star"></i>'; // Unfilled star with gray gradient fill
+                                                }
                                             }
-                                        }
-                                        ?>
-                                    </span>
-                                </p>
-                                <p>
-                                    <span class="time-rating-posted">
-                                        <strong>Posted on:</strong> <?php echo date('F j, Y', strtotime($review['created_at']) ) . ','; ?>
-                                    
-                                        <?php echo 'by ' . $review['first_name'] . ' ' . $review['last_name']; ?>
-                                    </span>
-                                </p>
+                                            ?>
+                                        </span>
+                                    </p>
+                                    <p>
+                                        <span class="time-rating-posted">
+                                            <strong>Posted on:</strong> <?php echo date('F j, Y', strtotime($review['created_at']) ) . ','; ?>
+                                        
+                                            <?php echo 'by ' . $review['first_name'] . ' ' . $review['last_name']; ?>
+                                        </span>
+                                    </p>
+                                </div>
+                            <?php endforeach; ?>
+
+                            <div class="rating-all-comments">
+                                <a href="<?php echo BASE_URL; ?>reviews/review-comments.php?service_id=<?php echo 
+                                $service_id .'&review_token=' . $hash; ?>">
+                                    View All
+                                </a>
                             </div>
-                        <?php endforeach; ?>
 
-                        <div class="rating-all-comments">
-                            <a href="<?php echo BASE_URL; ?>reviews/review-comments.php?service_id=<?php echo 
-                            $service_id .'&review_token=' . $hash; ?>">
-                                View All
-                            </a>
-                        </div>
+                        <?php else: ?>
+                            <p class="review-body">No reviews yet.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Right Container -->
+            <div class="right-container">
+                <div class="s-details advertiser-info">
+                    <h3>Advertiser Info</h3>
+
+                    <?php if (isset($_SESSION['logged_in']) && isset($_SESSION['user_id'])): ?>
+                        <img src="<?php echo BASE_URL . 'uploads/profile-images/' . $service['profile_image']; ?>" alt="Advertiser profile Picture">
                     <?php else: ?>
-                        <p class="review-body">No reviews yet.</p>
+                        <img src="<?php echo BASE_URL; ?>images/default-profile.jpg" alt="Advertiser profile Picture">
                     <?php endif; ?>
+
+                    <p>
+                        <!-- Show Contact Button -->
+                        <button class="phone-contact" id="show-contact-button" onclick="showPhoneNumber()">
+                            <i class="fas fa-phone-alt"></i> Show Contact
+                        </button>
+
+                        <!-- Phone Number Button (Initially Hidden) -->
+                        <button class="phone-contact" id="phone-contact-button" style="display: none;">
+                            <a href="tel:<?php echo $service['phone']; ?>" class="phone-contact" id="phone-contact-anchor">
+                                <?php echo $service['phone']; ?>
+                            </a>
+                        </button>
+                    </p>
+
+                    <p>
+                        <i class="fas fa-user" title="Advertiser Name"></i>
+                        <?php echo $service['first_name'] . ' ' . $service['last_name']; ?>
+                        
+                    </p>
+                    <p>
+                        <i class="fas fa-map-marker-alt" title="Location"></i> 
+                        <?php echo $service['state']  . ', ' . $service['lga']; ?>
+                    </p>
                 </div>
 
-            </div>
-        </div>
+                <div class="s-details one-to-one-chat">
+                    <form method="POST" id="chat-form">
+                        <p id="service-chat-msg" style="display: none;">Message sent</p>
+                        <textarea placeholder="Message the advertiser..." id="chat-message"></textarea>
+                        <button type="submit" name="chat" id="chat">Send Chat</button>
+                    </form>
+                </div>
 
-        <!-- Right Container -->
-        <div class="right-container">
+                
+                <div class="s-details safty-tips">
+                    <h3>Safety Tips</h3>
+                    <ul>
+                        <li>Meet in public places</li>
+                        <li>Avoid advance payments</li>
+                        <li>Verify the service before payment</li>
+                        <li>When you are indoubt consult professionals in the field</li>
+                    </ul>
+                </div>
+                
+                <div class="s-details ads-statistics">
+                    <p>
+                        <a href="<?php echo BASE_URL; ?>report-services/report-service.php?id=<?php echo 
+                                $service_id .'&token=' . $hash; ?>">
+                            <i class="fas fa-flag"></i>Report Abuse
+                        </a>
+                        <a href="<?php echo BASE_URL; ?>services/post-service.php">
+                            <i class="fas fa-plus-circle"></i>Post Your Ads
+                        </a>
+                    </p>
+                    <p class="stat-counter view-counter">
+                        <i class="fas fa-eye" title="Total Views"></i><?php echo $totalViews; ?>
+                    </p>
+                </div>
 
-            <div class="s-details advertiser-info">
-                <h3>Advertiser Info</h3>
-
-                <?php if (isset($_SESSION['logged_in']) && isset($_SESSION['user_id'])): ?>
-                    <img src="<?php echo BASE_URL . 'uploads/profile-images/' . $service['profile_image']; ?>" alt="Advertiser profile Picture">
-                <?php else: ?>
-                    <img src="<?php echo BASE_URL; ?>images/default-profile.jpg" alt="Advertiser profile Picture">
+                <!-- Show "Write a Review" link for other users that are logged in, excluding the ads owner-->
+                <?php if ($userLoggedIn && !$isOwner && !$user_has_reviewed): ?>
+                    <div class="s-details">
+                        <p class="write-review-link">
+                            <a href="<?php echo BASE_URL; ?>reviews/write-review.php?id=<?php echo 
+                                $service_id .'&token=' . $hash; ?>">Write a Review
+                            </a>
+                        </p>
+                    </div>
+                <?php elseif (!$userLoggedIn): ?>
+                    <!-- If the user is not logged in, show the "Write a Review" link -->
+                    <div class="s-details">
+                        <p class="write-review-link">
+                            <a href="<?php echo BASE_URL; ?>reviews/write-review.php?id=<?php 
+                                echo $service_id .'&token=' . $hash; ?>">Write a Review
+                            </a>
+                        </p>
+                    </div>
                 <?php endif; ?>
 
-                <p>
-                    <!-- Show Contact Button -->
-                    <button class="phone-contact" id="show-contact-button" onclick="showPhoneNumber()">
-                        <i class="fas fa-phone-alt"></i> Show Contact
-                    </button>
-
-                    <!-- Phone Number Button (Initially Hidden) -->
-                    <button class="phone-contact" id="phone-contact-button" style="display: none;">
-                        <a href="tel:<?php echo $service['phone']; ?>" class="phone-contact" id="phone-contact-anchor">
-                            <?php echo $service['phone']; ?>
-                        </a>
-                    </button>
-                </p>
-
-                <p>
-                    <i class="fas fa-user" title="Advertiser Name"></i>
-                    <?php echo $service['first_name'] . ' ' . $service['last_name']; ?>
-                    
-                </p>
-                <p>
-                    <i class="fas fa-map-marker-alt" title="Location"></i> 
-                    <?php echo $service['state']  . ', ' . $service['lga']; ?>
-                </p>
-            </div>
-
-            <div class="s-details one-to-one-chat">
-                <form>
-                    <p id="service-chat-msg">Message sent</p>
-                    <textarea placeholder="Message the advertiser..."></textarea>
-                    <button type="submit">Send Chat</button>
-                </form>
-            </div>
-            
-            <div class="s-details safty-tips">
-                <h3>Safety Tips</h3>
-                <ul>
-                    <li>Meet in public places</li>
-                    <li>Avoid advance payments</li>
-                    <li>Verify the service before payment</li>
-                    <li>When you are indoubt consult professionals in the field</li>
-                </ul>
-            </div>
-            
-            <div class="s-details ads-statistics">
-                <p>
-                    <a href="#"><i class="fas fa-flag"></i>Report Abuse</a>
-                    <a href="#"><i class="fas fa-plus-circle"></i>Post Your Ads</a>
-                </p>
-                <p class="stat-counter view-counter">
-                    <i class="fas fa-eye" title="Views"></i><?php echo $totalViews; ?>
-                </p>
-            </div>
-
-            <!-- Write review link -->
-            <!-- Show "Write a Review" link for other users that are logged in, excluding the ads owner-->
-            <?php if ($userLoggedIn && !$isOwner && !$user_has_reviewed): ?>
                 <div class="s-details">
-                    <p class="write-review-link">
-                        <a href="<?php echo BASE_URL; ?>reviews/write-review.php?service_id=<?php echo 
-                            $service_id .'&review_token=' . $hash; ?>">Write a Review
-                        </a>
-                    </p>
-                </div>
-            <?php elseif (!$userLoggedIn): ?>
-                <!-- If the user is not logged in, show the "Write a Review" link -->
-                <div class="s-details">
-                    <p class="write-review-link">
-                        <a href="<?php echo BASE_URL; ?>reviews/write-review.php?service_id=<?php 
-                            echo $service_id .'&review_token=' . $hash; ?>">Write a Review
-                        </a>
-                    </p>
-                </div>
-            <?php endif; ?>
-
-            <div class="s-details">
-                <h3 class="socials-header">Share on socials</h3>
-                <div class="share-on-socials">
-                    <a href="#">Facebook</a>
-                    <a href="#">Instagram</a>
-                    <a href="#">Twitter</a>
-                    <a href="#">Whatsapp</a>
-                    <a href="#">Email</a>
+                    <h3 class="socials-header">Share on socials</h3>
+                    <div class="share-on-socials">
+                        <a href="#">Facebook</a>
+                        <a href="#">Instagram</a>
+                        <a href="#">Twitter</a>
+                        <a href="#">Whatsapp</a>
+                        <a href="#">Email</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-
-
-
-
+    
     <!-- Similar Adverts Section -->
     <?php if (!empty($similar_ads)): ?>
-        <section class="featured-section">
+    <section class="featured-section">
         <h2>Similar Services</h2>
         <div class="services-container">
             <?php foreach ($similar_ads as $similar_ad): ?>
@@ -632,14 +630,14 @@ else
                 </div>
             <?php endforeach; ?>
         </div>
-        </section>
+    </section>
     <?php endif; ?>
 
     <!-- Ads from the same advertiser -->
     <?php if (!empty($moreAds)): ?>
-        <section class="more-ads">
-          <h2>More Ads from This Advertiser</h2>
-          <div class="ad-list">
+    <section>
+        <h2>More Ads from This Advertiser</h2>
+        <div class="ad-list">
             <?php foreach ($moreAds as $ad): ?>
                 <div class="ad-item">
                     <a href="<?php echo BASE_URL . $ad['category_slug'] . '/' . $ad['subcategory_slug'] . '/' . $ad['slug'] . '-' . $ad['id'] . '.html'; ?>">
@@ -665,22 +663,81 @@ else
                     </a>
                 </div>
             <?php endforeach; ?>
-          </div>
-        </section>
+        </div>
+    </section>
     <?php endif; ?>
 
-</section>
+</main>
 
 <script>
+    // Add to favourite ajax
+    /*document.addEventListener("DOMContentLoaded", function () {
+
+        const toggleButtons = document.getElementById("toggle-favourite-btn");
+        favouriteForm.addEventListener('submit', function(e){
+            e.preventDefault();
+            //alert(789);
+        });
+        const toggleButtons = document.getElementById("toggle-favourite-btn");
+        const favouriteForm = document.getElementById("favourite-form");
+        toggleButtons.addEventListener('click', function (e){
+            e.preventDefault();
+            favouriteForm.submit();
+        });
+    });*/
+
+
+
+
+
+document.getElementById('chat-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const message = document.getElementById('chat-message').value.trim();
+
+    const formData = new FormData();
+    //formData.append('chat', true);
+    formData.append('message', message);
+    
+    // Send the request using fetch
+    fetch('process-chat.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Handle success
+        if (data.success) {
+            alert(data.message);
+        } 
+        else 
+        {
+            alert('data.message');
+        }
+    })
+    .catch(error => {
+        alert(error);
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
     function changeImage(src)
     {
         document.getElementById('featured-image').src = src;
-
     }
 
     // Update star rating dynamically
     window.onload = function () {
-        const averageRating = <?php echo $average_rating; ?>; // PHP value
+        const averageRating = <?php echo $average_rating; ?>;
         const starsInner = document.querySelector('.stars-inner');
         
         // Calculate percentage for filled stars

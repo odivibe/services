@@ -16,10 +16,10 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['logged_in']))
 }
 
 // Verify service ID and hash
-if (isset($_GET['service_id'], $_GET['review_token'])) 
+if (isset($_GET['id'], $_GET['token'])) 
 {
-    $service_id = intval($_GET['service_id']);
-    $hash = $_GET['review_token'];
+    $service_id = intval($_GET['id']);
+    $hash = $_GET['token'];
     $user_id = $_SESSION['user_id'];
 
     // Verify the hash

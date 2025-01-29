@@ -22,7 +22,7 @@ i {
 
 body {
     font-family: 'Poppins', Arial, sans-serif;
-    background-color: #F1F1F2;
+    background-color: #E4E4E4;
     font-size: 16px;
 }
 
@@ -317,42 +317,54 @@ nav {
 }
 
 .body-container {
-    width: 92%;
+    width: 93%;
     margin: 0 auto;
 }
 
 section {
-    margin-bottom: 50px;
+    margin: 20px 0 40px 0;
     text-align: center;
-    background-color: #F5F5F5;
+    background-color: #ffffff;
+    padding: 40px 10px;
 }
 
-/* Category Styles */
-.category-section h2 {
-    margin-bottom: 20px;
+section h2 {
     font-size: 2rem;
-    margin-bottom: 15px;
+    color: var(--primary-color);
+    margin-top: -35px;
+    margin-bottom: 20px;
+}
+
+section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
     color: var(--primary-color);
 }
 
+section a {
+    text-decoration: none;
+}
+
+/* Category Styles */
 .category-cards-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center; 
     gap: 20px;
-    padding:8px 0;
-    margin: 0 auto;
+    padding:10px 0;
 }
 
 .category-card {
     background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
-    width: 250px;
+    padding: 8px;
     display: flex;
+    margin-bottom: 10px;
     align-items: center; 
-    justify-content: center; 
+    justify-content: center;
+    text-align: center; 
 }
 
 .category-card:hover {
@@ -376,40 +388,17 @@ section {
     font-size: 1.5rem; 
 }
 
-.card-content h3{
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--primary-color);
-    margin: 0;
-}
-
-.card-content-h3 h3{
-    text-align: center;
-    margin: 0 auto;
-}
-
 .no-ads-available {
     text-align: center; 
     margin: 0 auto; 
     padding: 20px; 
     font-size: 1.2rem; 
-    color: #555; 
+    color: #000000; 
     display: block; 
     width: 100%; 
 }
 
 /* featured services section */
-.featured-section {
-    background-color: transparent;
-}
-
-.featured-section h2 {
-    margin-bottom: 20px;
-    font-size: 2rem;
-    margin-bottom: 15px;
-    color: var(--primary-color);
-}
-
 .services-container {
     display: grid;
     grid-template-columns: repeat(5, 1fr); /* 5 columns */
@@ -421,13 +410,9 @@ section {
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     overflow: hidden;
     transition: transform 0.3s ease-in-out;
-}
-
-.service-card a {
-    text-decoration: none;
 }
 
 .service-card:hover {
@@ -436,7 +421,7 @@ section {
 
 .service-img {
     width: 100%;
-    height: 160px;
+    height: 155px;
     overflow: hidden; 
 }
 
@@ -490,15 +475,33 @@ section {
     color: var(--accent-color);
 }
 
+
+
+
+
+
+
+
+
+
 /* How It Works Section */
 .how-it-works-section {
     position: relative;
-    color: #ffffff;
-    padding: 80px 20px;
-    text-align: center;
+    height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
-    margin-bottom: 0;
-    background-color: transparent;
+    text-align: center;
+}
+
+.how-it-works-section h2{
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    color: var(--primary-color);
+    transform: translate(-50%);
+    z-index: 1;
 }
 
 .how-it-works-section img {
@@ -507,29 +510,29 @@ section {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    z-index: -1;
-}
-
-h2 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
+    object-fit: cover; 
+    z-index: 1;
 }
 
 .steps {
+    position: absolute;
+    z-index: 2; 
     display: flex;
+    flex-direction: row;
+    align-items: center;
     justify-content: center;
+    color: #fff;
+    padding: 10px;
     gap: 50px;
     flex-wrap: wrap;
-    margin-bottom: -45px;
 }
 
 .step {
     background-color: var(--primary-color); 
-    padding: 20px;
-    width: 300px;
+    padding: 10px;
+    width: 310px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
 }
 
@@ -538,13 +541,14 @@ h2 {
 }
 
 .step i {
-    font-size: 3rem;
+    font-size: 2rem;
     margin-bottom: 15px;
 }
 
 .step h3 {
     font-size: 1.5rem;
     margin-bottom: 10px;
+    color: #ffffff;
 }
 
 .step p {
@@ -744,13 +748,13 @@ button#resend-button:disabled {
     text-decoration: underline;
 }
 
-#image-preview-container {
+.image-preview-wrapper {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-#image-preview-container div {
+.image-preview-wrapper div {
     position: relative;
     width: calc(20% - 10px);
     height: 150px;
@@ -762,14 +766,14 @@ button#resend-button:disabled {
     overflow: hidden;
 }
 
-#image-preview-container img {
+.image-preview-wrapper img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
 /* Delete button in service image upload */
-#image-preview-container span {
+.image-preview-wrapper span {
     position: absolute;
     top: 5px;
     right: 5px;
@@ -788,7 +792,7 @@ button#resend-button:disabled {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-#image-preview-container span:hover {
+.image-preview-wrapper span:hover {
     background-color: #e6b800;
 }
 
@@ -857,7 +861,7 @@ button#resend-button:disabled {
 }
 
 .sidebar {
-    flex-grow: 1;
+    width: 25%;
     background-color: #f4f4f4;
     padding: 20px;
     height: 100vh;
@@ -867,18 +871,19 @@ button#resend-button:disabled {
     display: block;
     text-decoration: none;
     margin-bottom: 10px;
-    color: #333;
+    color: #ffffff;
     padding: 10px;
     border-radius: 5px;
     transition: background 0.3s;
+    background-color: var(--primary-color);
 }
 
 .sidebar a:hover {
-    background-color: var(--accent-color);
+    font-size: 1.2rem;
 }
 
 #sidebar-display-area {
-    flex-grow: 7;
+    width: 75%;
     padding: 20px;
 }
 
@@ -908,6 +913,7 @@ button#resend-button:disabled {
 .breadcrumb-container a {
     color: var(--accent-color-two);
     text-decoration: none;
+    margin: 0 5px;
 }
 
 .breadcrumb-container a:hover {
@@ -916,6 +922,7 @@ button#resend-button:disabled {
 
 .breadcrumb-container span {
     color: #6c757d;
+    margin-left: 5px;
 }
 
 
@@ -1048,12 +1055,10 @@ button#resend-button:disabled {
 
 .left-container {
     flex: 3;
-    border-radius: 10px 10px 0 0;
 }
 
 .right-container {
     flex: 1;
-    border-radius: 10px 10px 0 0;
 }
 
 .right-container div {
@@ -1162,46 +1167,33 @@ button#resend-button:disabled {
 }
 
 .s-details {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    margin: 35px 0;
     background-color: #ffffff;
-    margin: 0 0 20px 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.service-details-info {
+.service-title {
     text-align: left;
     padding: 15px;
     margin-top: -45px;
 }
 
-.service-details-info .title-description h1 {
-    font-size: 1.8rem;
-    font-weight: bold;
-    line-height: 1.5;
-    color: rgb(70, 75, 79);
-    margin-bottom: 25px;
-}
-
-.service-details-info .title-description h2 {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: rgb(49, 49, 51);
-    padding: 5px 2px;
+.service-description {
     text-align: left;
+    padding: 45px 15px 15px 15px;
 }
 
-.service-details-info .title-description p {
-    font-size: 1.1rem;
-    color: rgb(49, 49, 51);
-    line-height: 1.6;
-    margin: -14px 0 25px 0;
-    padding: 0 2px;
+.price-negotiable {
+    padding: 15px;
+    text-align: left;
 }
 
 .price-negotiable h2 {
     white-space: nowrap;
     font-size: 2.3rem;
     margin:0 auto;
-    color: var(--accent-color);
+    color: gray;
 }
 
 .price-negotiable p {
@@ -1214,12 +1206,6 @@ button#resend-button:disabled {
     border-radius: 5px;
     text-align: center;
     border: 2px solid var(--primary-color);
-}
-
-.price-negotiable i {
-    color: var(--primary-color);
-    margin-right: 2px;
-    font-size: 1.4rem;
 }
 
 .reviews-section-container {
@@ -1641,25 +1627,27 @@ h3.socials-header {
 }
 
 
+/*.favourite-icon {
+    text-align: right;
+}
+
+.favourite-icon i {
+    font-size: 1.7rem;
+    padding: 8px;
+    margin: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.favourite-icon i:hover {
+    background-color: green;
+}*/
 
 
 
 
 
 /* ads from the same advertiser */
-.more-ads {
-    width: 100%;
-    padding: 10px;
-    margin: 0 auto;
-}
-
-.more-ads h2 {
-    margin-bottom: 20px;
-    font-size: 2rem;
-    margin-bottom: 15px;
-    color: var(--primary-color);
-}
-
 .ad-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr); /* 5 columns */
@@ -1671,7 +1659,7 @@ h3.socials-header {
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     overflow: hidden;
     transition: transform 0.3s ease-in-out;
 }
@@ -1748,7 +1736,72 @@ h3.socials-header {
 }
 
 
+/* myads.php style */
+.myads-section {
+     margin: 40px 0;
+}
 
+.ads-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.ads-table th, .ads-table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.featured-img {
+    width: 300px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.status {
+    padding: 8px 25px;
+    margin: 10px auto;
+    color: #ffffff;
+    border-radius: 8px;
+    display: block;
+    text-align: center;
+}
+
+.status.approved {
+    background-color: #61DE56;
+}
+
+.status.pending {
+    background-color: #FFA500;
+}
+
+.status.rejected {
+    background-color: #FF3636;
+}
+
+.btn {
+    padding: 8px 25px;
+    margin: 10px auto;
+    text-decoration: none;
+    color: #ffffff;
+    border-radius: 8px;
+    display: block;
+    text-align: center;
+}
+
+.btn-view {
+    background-color: #5660EC;
+}
+
+.btn-edit {
+    background-color: #61DE56;
+}
+
+.btn-delete {
+    background-color: #FF3636;
+}
 
 
 
@@ -1784,15 +1837,10 @@ h3.socials-header {
     background-color: var(--hover-color-two);
 }
 
-
-
-
-
 /* Newsletter Section */
 .newsletter {
     background-color: #222222;
     padding: 50px 10px;
-    border-bottom: 0.5px solid #000000;
 }
 
 .newsletter h2 {
@@ -1968,10 +2016,11 @@ h3.socials-header {
 /* Footer Container */
 .footer {
     text-align: center;
+    margin-top: 80px;
 }
 
 .footer-links {
-    background-color: #222222;
+    background-color: #313133;
     padding: 20px 10px;
 }
 
@@ -2001,7 +2050,7 @@ h3.socials-header {
     color: #ffffff;
     padding: 10px;
     text-align: center;
-    background-color: var(--accent-color-two);
+    background-color: #313133DE;
 }
 
 
@@ -2009,69 +2058,6 @@ h3.socials-header {
 
 
 
-
-
-
-
-/* myads.php style */
-.ads-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.ads-table th, .ads-table td {
-    padding: 10px;
-    text-align: left;
-    border: 1px solid #ddd;
-}
-
-.featured-img {
-    width: 300px;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-
-.status {
-    padding: 5px 10px;
-    border-radius: 4px;
-    color: #fff;
-    font-size: 14px;
-}
-
-.status.approved {
-    background-color: green;
-}
-
-.status.pending {
-    background-color: orange;
-}
-
-.status.rejected {
-    background-color: red;
-}
-
-.btn {
-    padding: 8px 12px;
-    margin-right: 5px;
-    text-decoration: none;
-    color: #fff;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.btn-view {
-    background-color: blue;
-}
-
-.btn-edit {
-    background-color: green;
-}
-
-.btn-delete {
-    background-color: red;
-}
 
 
 

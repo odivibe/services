@@ -17,10 +17,12 @@ unset($_SESSION['review_message']);
 
 <?php require_once '../include/header.php'; ?>
 
-<div class="message-container">
-    <div class="msg-info" role="alert">
-        <?php echo htmlspecialchars($showMessage, ENT_QUOTES, 'UTF-8'); ?>
+<main class="body-container">
+    <div class="message-container">
+        <div class="msg-info" role="alert">
+            <?php echo htmlspecialchars($showMessage, ENT_QUOTES, 'UTF-8'); ?>
+        </div>
     </div>
-</div>
+</main>
 
 <?php require_once '../include/footer.php'; ?>

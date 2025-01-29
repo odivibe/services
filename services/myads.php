@@ -43,7 +43,8 @@ catch (PDOException $e)
 <?php require_once '../include/header.php'; ?>
 
 <main class="body-container">
-        <h1>My Ads</h1>
+    <section class="myads-section">
+        <h2>My Ads</h2>
         <table class="ads-table">
             <thead>
                 <tr>
@@ -56,6 +57,7 @@ catch (PDOException $e)
             <tbody>
             <?php if (!empty($ads)): ?>
                 <?php foreach ($ads as $ad): ?>
+                    <?php $hash = hash_hmac('sha256', $ad['id'], SECRET_KEY); ?>
                     <tr>
                         <td>
                             <img src="<?= BASE_URL . 'uploads/services-images/' . $ad['image_path']; ?>" alt="Featured Image" class="featured-img">
@@ -71,10 +73,12 @@ catch (PDOException $e)
                                 View
                            </a>
 
-                            <a href="edit-ad.php?id=<?= $ad['id'] ?>" class="btn btn-edit">Edit</a>
-                            
-                            <a href="delete-ad.php?id=<?= $ad['id'] ?>" class="btn btn-delete" 
-                               onclick="return confirm('Are you sure you want to delete this ad?');">
+                            <a href="edit-ad.php?id=<?= $ad['id'] ?>&token=<?= $hash ?>" class="btn btn-edit">
+                                Edit
+                            </a>
+
+                            <a href="delete-ad.php?id=<?= $ad['id'] ?>&token=<?= $hash ?>" class="btn 
+                                btn-delete" onclick="return confirm('Are you sure you want to delete this ad?');">
                                 Delete
                             </a>
                         </td>
@@ -87,6 +91,7 @@ catch (PDOException $e)
             <?php endif; ?>
         </tbody>
         </table>
+    </section>
 </main>
 
 <?php require_once '../include/footer.php'; ?>

@@ -3,11 +3,12 @@
 session_start();
 
 require_once  'include/config.php';
+require_once 'include/db.php';
 require_once 'include/header.php';
 
 ?>
 
-<main>
+<main class="body-container">
     <div class="terms-of-service-container">
         <h1>Terms of Service</h1>
 

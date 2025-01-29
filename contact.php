@@ -1,12 +1,14 @@
 <?php
 
-session_start();
+//define('STATIC_PAGE', true); 
+
 
 require_once  'include/config.php';
+
 require_once 'include/header.php';
 ?>
 
-<main>
+<main class="body-container">
     <div class="contact-us-container">
         <div class="contact-us-text-container">
             <h1>Contact Us</h1>

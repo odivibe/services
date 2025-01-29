@@ -121,49 +121,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit']))
 
 <?php require_once '../include/header.php'; ?>
 
-<div class="form-container">
-    <h1>Login</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <!-- Error Message -->
-        <?php if (!empty($error)): ?>
-            <div class="form-group error">
-                <?php echo htmlspecialchars($error); ?>
+<main class="body-container">
+    <div class="form-container">
+        <h1>Login</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <!-- Error Message -->
+            <?php if (!empty($error)): ?>
+                <div class="form-group error">
+                    <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- Email Input -->
+            <div class="form-group">
+                <label for="login_email">Email: <span class="required">*</span></label>
+                <input type="email" name="login_email" id="login_email" placeholder="Enter email" required>
             </div>
-        <?php endif; ?>
 
-        <!-- Email Input -->
-        <div class="form-group">
-            <label for="login_email">Email: <span class="required">*</span></label>
-            <input type="email" name="login_email" id="login_email" placeholder="Enter email" required>
-        </div>
+            <!-- Password Input -->
+            <div class="form-group">
+                <label for="login_password">Password: <span class="required">*</span></label>
+                <input type="password" name="login_password" id="login_password" placeholder="Enter password" required>
+            </div>
 
-        <!-- Password Input -->
-        <div class="form-group">
-            <label for="login_password">Password: <span class="required">*</span></label>
-            <input type="password" name="login_password" id="login_password" placeholder="Enter password" required>
-        </div>
+            <!-- CSRF Token -->
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
-        <!-- CSRF Token -->
-        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+            <!-- Remember Me -->
+            <div class="form-group remember-me">
+                <input type="checkbox" name="remember_me" id="remember_me">
+                <label for="remember_me">Remember Me</label>
+            </div>
 
-        <!-- Remember Me -->
-        <div class="form-group remember-me">
-            <input type="checkbox" name="remember_me" id="remember_me">
-            <label for="remember_me">Remember Me</label>
-        </div>
+            <!-- Submit Button -->
+            <div class="form-group">
+                <button type="submit" name="login_submit" id="login_submit">Submit</button>
+            </div>
 
-        <!-- Submit Button -->
-        <div class="form-group">
-            <button type="submit" name="login_submit" id="login_submit">Submit</button>
-        </div>
-
-        <!-- Links -->
-        <div class="form-links">
-            <a href="<?php echo BASE_URL; ?>account/forgot-password.php">Forgot Password?</a>
-            <span> | </span>
-            <a href="<?php echo BASE_URL; ?>account/register.php">Register</a>
-        </div>
-    </form>
-</div>
+            <!-- Links -->
+            <div class="form-links">
+                <a href="<?php echo BASE_URL; ?>account/forgot-password.php">Forgot Password?</a>
+                <span> | </span>
+                <a href="<?php echo BASE_URL; ?>account/register.php">Register</a>
+            </div>
+        </form>
+    </div>
+</main>
 
 <?php require_once '../include/footer.php'; ?>

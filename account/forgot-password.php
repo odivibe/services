@@ -41,32 +41,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<div class="form-container">
-    <h1>Forgot Password</h1>
-    <?php if ($error): ?>
-        <p class="error"> <?= $error; ?> </p>
-    <?php endif; ?>
+<main class="body-container">
+    <div class="form-container">
+        <h1>Forgot Password</h1>
+        <?php if ($error): ?>
+            <p class="error"> <?= $error; ?> </p>
+        <?php endif; ?>
 
-    <?php if ($success): ?>
-        <p class="success"> <?= $success; ?> </p>
-    <?php endif; ?>
+        <?php if ($success): ?>
+            <p class="success"> <?= $success; ?> </p>
+        <?php endif; ?>
 
-    <form method="POST" enctype="multipart/form-data">
-        <!-- Email -->
-        <div class="form-group">
-            <label for="forgot_password_email">Email:</label>
-            <input type="text" name="forgot_password_email" id="forgot_password_email" placeholder="Enter email" required>
+        <form method="POST" enctype="multipart/form-data">
+            <!-- Email -->
+            <div class="form-group">
+                <label for="forgot_password_email">Email:</label>
+                <input type="text" name="forgot_password_email" id="forgot_password_email" placeholder="Enter email" required>
+            </div>
+
+            <!-- Submit -->
+            <div class="form-group">
+                <button type="submit" name="forgot_password_submit" id="forgot_password_submit">Submit</button>
+            </div>
+        </form>
+
+        <!-- Login Link -->
+        <div class="form-links">
+            <a href="<?php echo BASE_URL; ?>account/login.php">Back to Login</a>
         </div>
-
-        <!-- Submit -->
-        <div class="form-group">
-            <button type="submit" name="forgot_password_submit" id="forgot_password_submit">Submit</button>
-        </div>
-    </form>
-
-    <!-- Login Link -->
-    <div class="form-links">
-        <a href="<?php echo BASE_URL; ?>account/login.php">Back to Login</a>
     </div>
-</div>
+</main>
 <?php require_once '../include/footer.php'; ?>

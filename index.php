@@ -71,7 +71,7 @@ $searchTarget = BASE_URL . "search.php?query={search_term_string}";
         </div>
     </section>
 
-    <main class="body-container">
+<main class="body-container">
 
     <!-- Categories Section -->
     <section class="category-section">

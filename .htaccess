@@ -5,7 +5,7 @@ RewriteEngine On
 RewriteBase /classified/
 
 # Redirect 404 errors to the custom 404.php page in the /error/ directory
-ErrorDocument 404 /classified/errors/404.php
+ErrorDocument 404 404.php
 
 
 # Rewrite rule for category page

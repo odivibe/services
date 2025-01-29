@@ -7,12 +7,10 @@ require_once '../include/input-cleaner.php';
 
 $user_id = '';
 
-if (isset($_SESSION['user_id']) && isset($_SESSION['logged_in'])) 
+if (isset($_SESSION['user_id'])) 
 {
     $user_id = $_SESSION['user_id'];
 }
-
-
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["submit_service"])) 
 {
@@ -71,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["submit_service"]))
 
     // Image validation
     $allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
-    $maxSize = 3 * 1024 * 1024; // 3MB
+    $maxSize = 5 * 1024 * 1024; // 5MB
     foreach ($_FILES["images"]['tmp_name'] as $key => $tmpName) 
     {
         $imageType = $_FILES["images"]['type'][$key];
@@ -85,73 +83,109 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["submit_service"]))
 
         if ($imageSize > $maxSize) 
         {
-            $errors['images'] = "Image size exceeds 3MB.";
+            $errors['images'] = "Image size exceeds 5MB.";
             break;
         }
     }
 
     if (empty($errors)) 
     {
-        // Generate slug from the title
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title), '-'));
-
-        // Insert service data
-        $query = "INSERT INTO services (title, category_id, subcategory_id, user_id, slug, description, price, is_negotiable, state_id, lga_id) 
-                  VALUES (:title, :category_id, :subcategory_id, :user_id, :slug, :description, :price, :is_negotiable, :state_id, :lga_id)";
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':title', $title);
-        $stmt->bindParam(':category_id', $category_id);
-        $stmt->bindParam(':subcategory_id', $subcategory_id);
-        $stmt->bindParam(':user_id', $user_id);
-        $stmt->bindParam(':slug', $slug);
-        $stmt->bindParam(':description', $description);
-        $stmt->bindParam(':price', $price);
-        $stmt->bindParam(':is_negotiable', $negotiable);
-        $stmt->bindParam(':state_id', $state_id);
-        $stmt->bindParam(':lga_id', $lga_id);
-
-        if ($stmt->execute()) 
+        try 
         {
-            $service_id = $pdo->lastInsertId();
+            // Generate unique slug from the title
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title), '-'));
 
-            // Insert images
-            foreach ($_FILES["images"]['tmp_name'] as $key => $tmpName) 
+            // Insert service data
+            $query = "INSERT INTO services (title, category_id, subcategory_id, user_id, slug, description, price, is_negotiable, state_id, lga_id) 
+                    VALUES (:title, :category_id, :subcategory_id, :user_id, :slug, :description, :price, :is_negotiable, :state_id, :lga_id)";
+            $stmt = $pdo->prepare($query);
+            $serviceData = [
+                ':title' => $title,
+                ':category_id' => $category_id,
+                ':subcategory_id' => $subcategory_id,
+                ':user_id' => $user_id,
+                ':slug' => $slug,
+                ':description' => $description,
+                ':price' => $price,
+                ':is_negotiable' => $negotiable,
+                ':state_id' => $state_id,
+                ':lga_id' => $lga_id,
+            ];
+
+            if ($stmt->execute($serviceData)) 
             {
-                $originalName = $_FILES['images']['name'][$key];
+                $service_id = $pdo->lastInsertId();
 
-                $extension = pathinfo($originalName, PATHINFO_EXTENSION); // Get file extension
+                // Handle image uploads
+                if (!empty($_FILES["images"]['tmp_name'])) 
+                {
+                    // Define the upload directory
+                    $uploadDir = '../uploads/services-images/';
 
-                $fileName = $slug . '-' . $service_id . '-image-' . ($key + 1) . '.' . $extension;
+                    // Check if the directory exists; if not, create it with proper permissions
+                    if (!is_dir($uploadDir)) 
+                    {
+                        mkdir($uploadDir, 0755, true);
+                    }
 
-                $destination = '../uploads/services-images/' . $fileName;
-                move_uploaded_file($tmpName, $destination);
+                    foreach ($_FILES["images"]['tmp_name'] as $key => $tmpName) 
+                    {
+                        $originalName = $_FILES['images']['name'][$key];
+                        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
 
-                // Mark the first image as featured
-                $is_featured = ($key === 0) ? 1 : 0;
+                        // Validate file type
+                        if (!in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif'])) 
+                        {
+                            continue; // Skip invalid files
+                        }
 
-                $imageQuery = "INSERT INTO service_images (image_path, service_id, is_featured) 
-                               VALUES (:image_path, :service_id, :is_featured)";
-                $imageStmt = $pdo->prepare($imageQuery);
-                $imageStmt->bindParam(':image_path', $fileName);
-                $imageStmt->bindParam(':service_id', $service_id);
-                $imageStmt->bindParam(':is_featured', $is_featured);
-                $imageStmt->execute();
+                        $fileName = $slug . '-' . $service_id . '-image-' . time() . '-' . uniqid() . '.' . $extension;
+                        $destination = $uploadDir . $fileName;
+
+                        // Save the file
+                        if (move_uploaded_file($tmpName, $destination)) 
+                        {
+                            // Determine if this is the featured image
+                            $is_featured = ($key === 0) ? 1 : 0;
+
+                            // Insert image record into the database
+                            $imageQuery = "INSERT INTO service_images (image_path, service_id, is_featured) 
+                                           VALUES (:image_path, :service_id, :is_featured)";
+                            $imageStmt = $pdo->prepare($imageQuery);
+                            $imageStmt->execute([
+                                ':image_path' => $fileName,
+                                ':service_id' => $service_id,
+                                ':is_featured' => $is_featured,
+                            ]);
+                        }
+                    }
+
+                    $data = ['success' => true, 'message' => 'Inserted.'];
+                    echo json_encode($data);
+                } 
+                else 
+                {
+                    $data = ['success' => false, 'message' => 'No images uploaded.'];
+                    echo json_encode($data);
+                }   
+            } 
+            else 
+            {
+                $data = ['success' => false, 'message' => 'Data insertion failed'];
+                echo json_encode($data);
             }
-
-            $data= array('success' => true, 'message' => 'Inserted');
-            echo json_encode($data);
         } 
-        else 
+        catch (Exception $e) 
         {
-            $data = array('success' => false, 'message' => 'Failed');
+            $data = ['success' => false, 'message' => $e->getMessage()];
             echo json_encode($data);
         }
-    } 
-    else 
-    {
-        $data = array('success' => false, 'errorMessage' => $errors);
+   }
+   else
+   {
+        $data = ['errors' => $errors];
         echo json_encode($data);
-    }
+   }
 }
 
 ?>

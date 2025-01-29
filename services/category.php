@@ -56,24 +56,27 @@ catch (PDOException $e)
 
 <?php include '../include/header.php'; ?>
 
-<!-- List out Subcategories for a particular category-->
-<section class="category-section">
-    <h2><?php echo $category['name']; ?> - Subcategories</h2>
-    <?php if ($subcategories && count($subcategories) > 0): ?>
-        <div class="category-cards-container">
-            <?php foreach ($subcategories as $subcategory): ?>
-                <div class="category-card">
-                    <a href="<?php echo BASE_URL . $category['slug'] . '/' . $subcategory['slug']; ?>">
-                        <div class="card-content card-content-h3">
-                            <h3><?php echo $subcategory['name']; ?></h3>
-                        </div>
-                    </a>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php else: ?>
-        <p class="no-ads-available">No subcategories available.</p>
-    <?php endif; ?>
-</section>
+<main class="body-container">
+
+    <!-- List out Subcategories for a particular category-->
+    <section class="category-section">
+        <h2><?php echo $category['name']; ?> - Subcategories</h2>
+        <?php if ($subcategories && count($subcategories) > 0): ?>
+            <div class="category-cards-container">
+                <?php foreach ($subcategories as $subcategory): ?>
+                    <div class="category-card">
+                        <a href="<?php echo BASE_URL . $category['slug'] . '/' . $subcategory['slug']; ?>">
+                            <div class="card-content card-content-h3">
+                                <h3><?php echo $subcategory['name']; ?></h3>
+                            </div>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <p class="no-ads-available">No subcategories available.</p>
+        <?php endif; ?>
+    </section>
+</main>
 
 <?php include '../include/footer.php'; ?>

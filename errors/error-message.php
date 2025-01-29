@@ -7,15 +7,12 @@ require_once '../include/config.php';
 ?>
 
 <?php require_once '../include/header.php'; ?>
-
-<div class="message-container">
-    <div class="msg-info" role="alert">
-        <?php echo $showMessage; ?>
+<main class="body-container">
+    <div class="message-container">
+        <div class="msg-info" role="alert">
+            <?php echo $showMessage; ?>
+        </div>
     </div>
-</div>
+</main>
 
-<?php 
-
-require_once '../include/footer.php'; 
-
-?>
+<?php require_once '../include/footer.php'; ?>

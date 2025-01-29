@@ -1,43 +1,9 @@
 <?php
 
-// Session cookie
-/*session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'domain' => $_SERVER['HTTP_HOST'],
-    'secure' => false, // true = production, https only, false = development, http
-    'httponly' => true, // Prevent JavaScript access
-    'samesite' => 'Strict' // Prevent cross-site attacks
-]);
-session_start();*/
-
-
 define('SECRET_KEY', 'service ads classified'); // Secret key for hashing
 define('CURRENCY_TYPE_SYMBOLE', '₦'); // currency symbole for prices
 define('SITE_NAME', 'Service Ads Classified Platform');
 define('BASE_URL', determineBaseURL());
-
-// Custom error handler
-/*set_error_handler(function($errno, $errstr, $errfile, $errline) {
-    http_response_code(500);
-    require_once '../include/500.php';
-    exit();
-});
-
-// Custom exception handler
-set_exception_handler(function($exception) {
-    http_response_code(500);
-    require_once '../include/500.php';
-    exit();
-});
-
-// Handle 404 manually in routes
-if (!file_exists($requestedFile)) {
-    http_response_code(404);
-    require_once '../include/404.php';
-    exit();
-}*/
-
 
 function determineBaseURL() 
 {
