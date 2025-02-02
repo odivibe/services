@@ -144,11 +144,6 @@ if ($hasLoggedIn && $user_id)
                             </a>
                         </li>
                         <li>
-                            <a href="<?php echo BASE_URL; ?>account/change-emailing.php">
-                                <i class="fas fa-user"></i> Change Email
-                            </a>
-                        </li>
-                        <li>
                             <a href="#">
                                 <i class="fas fa-cogs"></i> Settings
                             </a>

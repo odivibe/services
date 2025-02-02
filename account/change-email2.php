@@ -206,7 +206,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_SESSION['form_submitted'] === fal
     <div class="form-container">
     <h1>Change Your Email</h1>
     <?php if ($can_change_email): ?>
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" action="<?php echo htmlspecialchars('process-change-email.php'); ?>" 
+            enctype="multipart/form-data">
 
             <div class="form-group">
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
@@ -249,9 +250,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_SESSION['form_submitted'] === fal
 </main>
 
 
+
 <?php if (!$can_change_email): ?>
 
 <script>
+
+    // Counter for number of days left to change email
     let remainingSeconds = <?= $remaining_days * 86400; ?>; // Number of seconds in a day 86400
     
     function updateCountdown() 
@@ -264,66 +268,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_SESSION['form_submitted'] === fal
         document.getElementById("countdown").innerText = 
             `You can change your email in ${days} days, ${hours} hours, ${minutes} minutes, and ${seconds} seconds.`;
 
-        if (remainingSeconds > 0) {
+        if (remainingSeconds > 0) 
+        {
             remainingSeconds--;
             setTimeout(updateCountdown, 1000);
         }
     }
 
     updateCountdown();
-
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-    const form = document.querySelector("form");
-    const submitButton = document.getElementById("change_email_submit");
-
-    form.addEventListener("submit", function (event) {
-        event.preventDefault(); // Prevent normal form submission
-        
-        // Disable button to prevent multiple submissions
-        submitButton.disabled = true;
-
-        // Clear previous errors
-        document.querySelectorAll(".error").forEach(el => el.textContent = "");
-
-        let formData = new FormData(form);
-
-        fetch("change-email.php", {
-            method: "POST",
-            body: formData,
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) 
-            {
-                document.getElementById("message-output").innerHTML = `<p style="color: green;">${data.message}</p>`;
-                form.reset(); // Reset form on success
-            } 
-            else 
-            {
-                // Display errors
-                for (const [field, message] of Object.entries(data.errors)) 
-                {
-                    let errorElement = document.getElementById(`${field}_error`);
-
-                    if (errorElement)
-                    {
-                        errorElement.textContent = message;
-                    } 
-                        
-                }
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            document.getElementById("message-output").innerHTML = `<p style="color: red;">An unexpected error occurred. Please try again later.</p>`;
-        })
-        .finally(() => {
-            submitButton.disabled = false; // Re-enable button
-        });
-    });
-});
 
 </script>
 

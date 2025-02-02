@@ -7,11 +7,11 @@ require_once '../include/header.php';
 
 <div id="manage-account">
     <div class="sidebar">
-        <a href="#" onclick="loadContent('change-email')">Change Email</a>
-        <a href="#" onclick="loadContent('change-password')">Change Password</a>
-        <a href="#" onclick="loadContent('change-profile-image')">Change Profile Image</a>
-        <a href="#" onclick="loadContent('change-phone')">Change Phone</a>
-        <a href="#" onclick="loadContent('add-socials')">Add Socials</a>
+        <a href="#" data-page="change-email">Change Email</a>
+        <a href="#" data-page="change-password">Change Password</a>
+        <a href="#" data-page="change-profile-picture">Change Profile Picture</a>
+        <a href="#" data-page="change-phone">Change Phone</a>
+        <a href="#" data-page="add-socials">Add Socials</a>
     </div>
 
     <div id="content-area">
@@ -22,46 +22,48 @@ require_once '../include/header.php';
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Attach event listeners to sidebar buttons
-    const sidebarButtons = document.querySelectorAll('.sidebar a');
+    const sidebarLinks = document.querySelectorAll('.sidebar a');
     const displayArea = document.getElementById('content-area');
 
-    // Function to load content dynamically into the display area
-    function loadContent(page) 
-    {
-        fetch(`${page}.php`)
+    // Attach event listeners to sidebar buttons
+    sidebarLinks.forEach(button => {
+        button.addEventListener('click', function (event) 
+        {
+            event.preventDefault();
+            const page = button.getAttribute('data-page');
+
+            fetch(`${page}.php`)
             .then(response => response.text())
             .then(data => {
-                displayArea.innerHTML = data; // Insert the form into the display area
-                attachFormHandler(); // Attach the form submission handler
+                displayArea.innerHTML = data; // Insert form into display area
+                attachFormHandler(); // Attach event listener to the new form
             })
             .catch(error => {
                 displayArea.innerHTML = "<p>Error loading content. Please try again later.</p>";
             });
-    }
-
-    // Attach event listeners to each button in the sidebar
-    sidebarButtons.forEach(button => {
-        button.addEventListener('click', function (event) {
-            event.preventDefault();
-            const page = button.getAttribute('onclick').split("'")[1]; // Get the page name from onclick
-            loadContent(page); // Load content based on button clicked
         });
     });
 
-    // Attach form submission handler for dynamically loaded forms
+    // Function to handle form submission dynamically
     function attachFormHandler() 
     {
-        const form = document.querySelector("#content-area form"); // current form loaded on content area
-        
+        const form = document.querySelector("#content-area form"); // current form in content area
+
         if (form) 
         {
+            const submitButton = form.querySelector("button[type='submit']");
+
             form.addEventListener("submit", function (event) {
-                event.preventDefault(); // Prevent page reload
+
+                clearErrors(); // clear previouse errors
+
+                event.preventDefault();
+
+                submitButton.disabled = true;
 
                 const formData = new FormData(form);
 
-                fetch(form.action || form.getAttribute("data-action"), {
+                fetch(form.action, {
                     method: "POST",
                     body: formData,
                 })
@@ -69,18 +71,52 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then(data => {
                     if (data.success) 
                     {
-                        displayArea.innerHTML = `<p style="color: green;">${data.message}</p>`;
+                        displayArea.innerHTML += `<p style="color: green;">${data.message}</p>`;
                     } 
                     else 
                     {
-                        displayArea.innerHTML = `<p style="color: red;">${data.message}</p>`;
+                        if (data.success === false) 
+                        {
+                            displayErrorMessages(data.errors);
+                        
+                            //displayErrorMessages(data.errors);
+                            
+                            // Re-enable the button after form submission is done
+                            submitButton.disabled = false;
+                        }
                     }
                 })
                 .catch(error => {
-                    displayArea.innerHTML = "<p style='color: red;'>Error processing request.</p>";
+                    displayArea.innerHTML += "<p style='color: red;'>Error processing request.</p>";
+
+                    // Re-enable the button after form submission is done
+                    submitButton.disabled = false;
                 });
             });
         }
+    }
+
+
+    // Function to clear errors
+    function clearErrors() 
+    {
+        const errorDivs = document.querySelectorAll(".error");
+        errorDivs.forEach(div => {
+            div.textContent = ""; // Clear error message
+            //div.style.display = "none"; // Hide error div
+        });
+    }
+
+    // Display error messages from backend
+    function displayErrorMessages(errors) 
+    {
+        Object.entries(errors).forEach(([field, error]) => {
+            const errorElement = document.getElementById(`${field}_error`);
+            if (errorElement) 
+            {
+                errorElement.textContent = error;
+            }
+        });
     }
 });
 

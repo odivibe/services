@@ -869,7 +869,7 @@ button#resend-button:disabled {
 }
 
 .sidebar a:hover {
-    font-size: 1.2rem;
+    color: var(--accent-color);
 }
 
 #content-area {
