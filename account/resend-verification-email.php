@@ -35,7 +35,7 @@ if(isset($_SESSION['user_id']))
             {
                 // user has been varified
                 $message_type = 
-                    '<h4>Email Verified</h4>
+                    '<h3>Email Verified</h3>
                     <p>
                         Your email has been verified successfully. <a href="'. BASE_URL .'account/login.php" >
                         Login Here</a>
@@ -49,7 +49,7 @@ if(isset($_SESSION['user_id']))
                 $user_id = $user['id'];
 
                 // Generate new token and expiry date
-                $verificationToken = bin2hex(random_bytes(32)); // Secure token
+                $verificationToken = bin2hex(random_bytes(64)); // Secure token
                 $expiry = time() + 60 * 5; // (5 minutes)
 
                 try
@@ -64,63 +64,25 @@ if(isset($_SESSION['user_id']))
                     // Prepare and send verification email
                     $verificationLink = BASE_URL . "account/verify-email.php?token=" . $verificationToken;
 
-                    sendVerificationEmail($email, $fname, $verificationLink);
+                    $subject = "Email verification";
 
-                    /*$subject = "Verify Your Email Address";
                     $body = "
                         <p>Dear $fname,</p>
                         <p>
                             We received a request to resend your email verification link. Please click the
                             link below to verify your email address:
                         </p>
-                        <p><a href='" . $verificationLink . "'>" . $verificationLink . "</a></p>
-                        <p>
-                            The link will expire in next 5 minutes.
-                        </p>
-                        <p>Thanks.</p>";
+                        <p><a href='$verificationLink'>$verificationLink</a></p>
+                        <p>The link will expire in next 15 minutes.</p>
+                        <p>Thanks,</p>
+                        <p>Your Website Team</p>";
 
                     $altBody = 'We received a request to resend your email verification link. Please click the link below to verify your email address:\n' . $verificationLink . '\n\n The link will expire in next 5 minutes. \n\nThanks.';
 
-                    $mail = new PHPMailer(true);
-
-                    try 
-                    {
-                        // Server settings
-                        $mail->isSMTP();
-                        $mail->Host = 'sandbox.smtp.mailtrap.io';
-                        $mail->SMTPAuth = true;
-                        $mail->Username = '670c70f26f6810';
-                        $mail->Password = 'd4b68560895d65'; 
-                        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                        $mail->Port = 465;
-
-                        // Recipients
-                        $mail->setFrom('no-reply@yourdomain.com', 'Your Website');
-                        $mail->addAddress($email, $fname);
-                        $mail->Subject = $subject;
-                        $mail->isHTML(true);
-                        $mail->Body = $body;
-                        $mail->AltBody = $altBody;
-                        $mail->send();
-
-                        $message_type = 
-                            '<h4>Email resent</h4>
-                            <p>
-                                Verification token has been resend to your email, <strong>' . 
-                                $email . '</strong>. Please check your inbox or spam folder to verify your email.
-                            </p>';
-
-                        $_SESSION['show_resend_button'] = true;
-                        echo $message_type;
-                    } 
-                    catch (Exception $e) 
-                    {
-                        handleError('Failed to send the email. Please try again later.', $e);
-                        exit();
-                    }*/
+                    sendVerificationEmail($subject, $body, $altBody, $email, $fname);
 
                     $message_type = 
-                        '<h4>Email resent</h4>
+                        '<h3>Email resent</h3>
                         <p>
                             Verification token has been resend to your email, <strong>' . 
                             $email . '</strong>. Please check your inbox or spam folder to verify your email.

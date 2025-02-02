@@ -72,6 +72,11 @@ if (is_numeric($service_id) && $service_id > 0)
                 exit();
             }
 
+
+            //For social sharing
+            $pageTitle = urlencode($service['title']);
+            $pageUrl = urlencode($_SERVER["HTTP_HOST"] . $request_url);
+
             // Fetch images for the service
             $query = "SELECT * FROM service_images WHERE service_id = :service_id";
             $stmt = $pdo->prepare($query);
@@ -267,8 +272,6 @@ if (is_numeric($service_id) && $service_id > 0)
             // Fetch the total views
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             $totalViews = $result['total_views'] ?? 0; // Default to 0 if no views found
-
-
         } 
         else 
         {
@@ -585,16 +588,29 @@ else
                     </div>
                 <?php endif; ?>
 
-                <div class="s-details">
+                <div class="s-details social-share">
                     <h3 class="socials-header">Share on socials</h3>
                     <div class="share-on-socials">
-                        <a href="#">Facebook</a>
-                        <a href="#">Instagram</a>
-                        <a href="#">Twitter</a>
-                        <a href="#">Whatsapp</a>
-                        <a href="#">Email</a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $pageUrl; ?>" 
+                            id="facebook-share" target="_blank">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+
+                        <a href="https://twitter.com/intent/tweet?url=<?php echo $pageUrl; ?>&text=<?php echo $pageTitle; ?>" id="twitter-share" target="_blank">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url=<?php echo $pageUrl; ?>" id="linkedin-share" target="_blank">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+
+                        <a href="https://api.whatsapp.com/send?text=<?php echo $pageTitle; ?> - <?php echo 
+                            $pageUrl; ?>" id="whatsapp-share" target="_blank">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
                     </div>
                 </div>
+ 
             </div>
         </div>
     </section>
@@ -776,7 +792,7 @@ document.getElementById('chat-form').addEventListener('submit', function(event) 
 
         // Show the button with the phone number
         document.getElementById('phone-contact-button').style.display = 'inline-block';
-    }
+    }             
 
 </script>
 

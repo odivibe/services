@@ -3,7 +3,9 @@
 define('SECRET_KEY', 'service ads classified'); // Secret key for hashing
 define('CURRENCY_TYPE_SYMBOLE', '₦'); // currency symbole for prices
 define('SITE_NAME', 'Service Ads Classified Platform');
-define('BASE_URL', determineBaseURL());
+define('BASE_URL', determineBaseURL()); // base url
+define('SUPPORT_EMAIL', 'support@goservice.com.ng'); // support email
+
 
 function determineBaseURL() 
 {

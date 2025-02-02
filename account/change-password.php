@@ -2,6 +2,13 @@
     <div class="form-container">
         <h1>Change Password</h1>
         <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                <div id="csrf_token_error" class="error">
+                    <?php echo $errorMessages['csrf_token']; ?>
+                </div>
+            </div>
+            
             <!-- Old Password -->
             <div class="form-group">
                 <label for="change_password">Old Password:</label>

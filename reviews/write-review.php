@@ -131,6 +131,14 @@ function validateReview($title, $rating, $comment)
                 <?php echo isset($errors['review']) ? $errors['review'] : ''; ?>
             </div>
 
+            <!-- CSRF Token -->
+            <div class="form-group">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                <div id="csrf_token_error" class="error">
+                    <?php echo $errorMessages['csrf_token']; ?>
+                </div>
+            </div>
+
             <!-- Title -->
             <div class="form-group">
                 <label for="title">Title:<span class="required">*</span></label>

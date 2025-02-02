@@ -29,6 +29,15 @@ require_once 'include/header.php';
         <div class="form-container">
             <h1>Send Us a Message</h1>
             <form method="POST" action="contact.php">
+
+                <!-- CSRF Token -->
+                <div class="form-group">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                    <div id="csrf_token_error" class="error">
+                        <?php echo $errorMessages['csrf_token']; ?>
+                    </div>
+                </div>
+                
                 <!-- Name -->
                 <div class="form-group">
                     <label for="name">Full Name:</label>

@@ -2,7 +2,7 @@
 
 // Assuming session variables are set correctly
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : '';
-$isLoggedIn = isset($_SESSION['logged_in']) ? $_SESSION['logged_in'] : false;
+$hasLoggedIn = isset($_SESSION['has_logged_in']) ? $_SESSION['has_logged_in'] : false;
 
 // Default profile image
 $defaultProfileImage = BASE_URL . 'images/default-profile.jpg';
@@ -10,7 +10,7 @@ $defaultProfileImage = BASE_URL . 'images/default-profile.jpg';
 $profileImage = $defaultProfileImage;
 
 // Fetch user profile image from the database if logged in
-if ($isLoggedIn && $user_id) 
+if ($hasLoggedIn && $user_id) 
 {
     try 
     {
@@ -105,7 +105,7 @@ if ($isLoggedIn && $user_id)
         <!-- Navigation Links -->
         <ul class="nav-links">
 
-            <?php if ($isLoggedIn): ?>
+            <?php if ($hasLoggedIn): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>services/myads.php" title="My Ads" class="my-ads">
                         <i class="fas fa-th-list"></i> My Ads
@@ -139,8 +139,13 @@ if ($isLoggedIn && $user_id)
                     </a>
                     <ul class="profile-dropdown-menu">
                         <li>
-                            <a href="<?php echo BASE_URL; ?>account/manage-account.php">
+                            <a href="<?php echo BASE_URL; ?>account/account-settings.php">
                                 <i class="fas fa-user"></i> Account
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo BASE_URL; ?>account/change-emailing.php">
+                                <i class="fas fa-user"></i> Change Email
                             </a>
                         </li>
                         <li>

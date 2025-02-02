@@ -39,11 +39,7 @@
         </footer>
 
         <!-- External js script -->
-        <script src="<?php echo BASE_URL; ?>js/resend-verification-email-ajax.js"></script>
         <script src="<?php echo BASE_URL; ?>js/sticky-header.js"></script>
         <script src="<?php echo BASE_URL; ?>js/dynamic-lga-and-subcategory-ajax.js"></script>
-        <script src="<?php echo BASE_URL; ?>js/manage-account.js"></script>
-        <script src="<?php echo BASE_URL; ?>js/faq-questions.js"></script>
-        <script src="<?php echo BASE_URL; ?>js/resend-verification-email-ajax.js"></script>
     </body>
 </html>

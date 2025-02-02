@@ -599,33 +599,23 @@ section a {
     color: red;
 }
 
-
-
-
-
-
-
 .message-container {
-    max-width: 600px;
-    margin: 20px auto;
+    width: 80%;
+    margin: 50px auto;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #ffffff;
     border: 1px solid #ddd;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    font-family: Arial, sans-serif;
-    color: #333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    text-align: left;
 }
 
 .msg-info {
     margin-bottom: 20px;
-    font-size: 18px;
-    color: #155724;
-    background-color: #d4edda;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #c3e6cb;
+    font-size: 1rem;
+    color: var(--primary-color);
+    padding: 15px;
+    line-height: 1.5;
 }
 
 button#resend-button {
@@ -882,7 +872,7 @@ button#resend-button:disabled {
     font-size: 1.2rem;
 }
 
-#sidebar-display-area {
+#content-area {
     width: 75%;
     padding: 20px;
 }
@@ -1581,31 +1571,43 @@ button#resend-button:disabled {
     color: #ffffff;
 }
 
+.social-share h3 {
+    color: rgb(49, 49, 51);
+}
+
 .share-on-socials {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     flex-direction: row; 
-    gap: 10px;
-}
-
-h3.socials-header {
-    color: rgb(49, 49, 51);
+    gap: 20px;
 }
 
 .share-on-socials a {
-    background-color: #ffffff;
     text-decoration: none;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 5px 10px;
-    color: var(--accent-color-two); 
+}
+
+.share-on-socials a i {
+    font-size: 1.6rem;
+    border-radius: 5px;
+    padding: 5px;
 }
 
 .share-on-socials a:hover {
     text-decoration: underline; 
 }
+
+.share-on-socials a i.fab.fa-facebook { background-color: #3b5998; color: #ffffff;}
+.share-on-socials a i.fab.fa-twitter { background-color: #1da1f2; color: #ffffff;}
+.share-on-socials a i.fab.fa-linkedin { background-color: #0073b1; color: #ffffff;}
+.share-on-socials a i.fab.fa-whatsapp { background-color: #25d366; color: #ffffff;}
+
+
+
+
+
+
 
 .write-review-link {
     background-color: var(--accent-color);

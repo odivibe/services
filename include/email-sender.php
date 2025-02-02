@@ -5,7 +5,7 @@ use PHPMailer\PHPMailer\Exception;
 
 require '../vendor/autoload.php'; // Include the Composer autoloader
 
-function sendVerificationEmail($email, $fname, $verificationLink) 
+function sendVerificationEmail($subject, $body, $altBody, $email, $name)
 {
     $mail = new PHPMailer(true);
 
@@ -22,18 +22,11 @@ function sendVerificationEmail($email, $fname, $verificationLink)
 
         // Email settings
         $mail->setFrom('no-reply@yourdomain.com', 'Your Website');
-        $mail->addAddress($email, $fname);
-        $mail->Subject = 'Verify Your Email Address';
+        $mail->addAddress($email, $name);
+        $mail->Subject = $subject;
         $mail->isHTML(true);
-        $mail->Body = "
-            <p>Dear $fname,</p>
-            <p>Please click the link below to verify your email address:</p>
-            <p><a href='$verificationLink'>$verificationLink</a></p>
-            <p>The link will expire in 15 minutes.</p>
-            <p>Thanks,</p>
-            <p>Your Website Team</p>";
-        $mail->AltBody = "Please click the link below to verify your email address: $verificationLink. The link will expire in 15 minutes.";
-
+        $mail->Body = $body;
+        $mail->AltBody = $altBody;
         $mail->send();
     } 
     catch (Exception $e) 

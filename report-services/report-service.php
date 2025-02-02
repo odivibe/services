@@ -103,6 +103,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['report_ad']))
         <h1>Report Service</h1>
         <form action="" method="POST">
 
+            <!-- CSRF Token -->
+            <div class="form-group">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                <div id="csrf_token_error" class="error">
+                    <?php echo $errorMessages['csrf_token']; ?>
+                </div>
+            </div>
+
             <!-- Description -->
             <div class="form-group">
                 <label for="reason">Reason:<span class="required">*</span></label>

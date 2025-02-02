@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update_service"]))
     $negotiable = sanitizeInput($_POST["negotiable"]);
     $state_id = sanitizeInput($_POST["state"]);
     $lga_id = sanitizeInput($_POST["lga"]);
-    $ad_id = intval(sanitizeInput($_POST["service_id"]));
+    $service_id = intval($_POST["service_id"]);
 
     // Validation
     if (empty($title)) 
@@ -97,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update_service"]))
             $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title), '-'));
 
             // Update service details
-            $updateQuery = "UPDATE services SET category_id = :category_id, subcategory_id = :subcategory_id, title = :title, slug = :slug, description = :description, price = :price, is_negotiable = :is_negotiable, state_id = :state_id, lga_id = :lga_id WHERE id = :ad_id AND user_id = :user_id";
+            $updateQuery = "UPDATE services SET category_id = :category_id, subcategory_id = :subcategory_id, title = :title, slug = :slug, description = :description, price = :price, is_negotiable = :is_negotiable, state_id = :state_id, lga_id = :lga_id WHERE id = :service_id AND user_id = :user_id";
             $stmt = $pdo->prepare($updateQuery);
             $updated = [
                 ':category_id' => $category_id,
@@ -109,22 +109,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update_service"]))
                 ':is_negotiable' => $negotiable,
                 ':state_id' => $state_id,
                 ':lga_id' => $lga_id,
-                ':ad_id' => $ad_id,
+                ':service_id' => $service_id,
                 ':user_id' => $user_id,
             ];
 
             if ($stmt->execute($updated)) 
             {
                 // Check if the ad already has a featured image
-                $stmt = $pdo->prepare("SELECT COUNT(*) FROM service_images WHERE service_id = :service_id AND is_featured = 1");
-                $stmt->execute([':service_id' => $ad_id]);
-                $has_featured = $stmt->fetchColumn() > 0;
+                $stmt = $pdo->prepare("SELECT id FROM service_images WHERE service_id = :service_id AND is_featured = 1");
+                $stmt->execute([':service_id' => $service_id]);
+                $featuredImage = $stmt->fetch(PDO::FETCH_ASSOC);
+                $has_featured = !empty($featuredImage);
 
-                //$has_featured = $result ? true : false;
+                // If no featured image exists, assign the next existing image
+                if (!$has_featured) 
+                {
+                    $stmt = $pdo->prepare("SELECT id FROM service_images WHERE service_id = :service_id ORDER BY id ASC LIMIT 1");
+                    $stmt->execute([':service_id' => $service_id]);
+                    $new_featured = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                // Handle image uploads for editing
+                    if ($new_featured) 
+                    {
+                        $stmt = $pdo->prepare("UPDATE service_images SET is_featured = 1 WHERE id = :image_id");
+                        $stmt->execute([':image_id' => $new_featured['id']]);
+                        $has_featured = true;
+                    }
+                }
+
+                // Handle new image uploads
                 if (!empty($_FILES["images"]['tmp_name'])) 
                 {
+                    // Define the upload directory
+                    $uploadDir = '../uploads/services-images/';
+
+                    // Check if the directory exists; if not, create it with proper permissions
+                    if (!is_dir($uploadDir)) 
+                    {
+                        mkdir($uploadDir, 0755, true);
+                    }
+
+                    //$uploadedImages = []; // Store uploaded images
+
                     foreach ($_FILES["images"]['tmp_name'] as $key => $tmpName) 
                     {
                         $originalName = $_FILES['images']['name'][$key];
@@ -136,29 +161,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update_service"]))
                             continue; // Skip invalid files
                         }
 
-                        $fileName = $slug . '-' . $ad_id . '-image-' . time() . '.' . $extension;
-                        $destination = '../uploads/services-images/' . $fileName;
+                        $fileName = $slug . '-' . $service_id . '-image-' . time() . '-' . uniqid() . '.' . 
+                            $extension;
+                        $destination = $uploadDir . $fileName;;
 
                         // Save the file
                         if (move_uploaded_file($tmpName, $destination)) 
                         {
-                            // If no featured image exists, set the first uploaded image as featured (is_featured = 1)
-                            //$is_featured = ($has_featured && $key === 0) ? 0 : 1;
-                            //$is_featured = ($key === 0) ? 1 : 0;
+                            // If no featured image exists, set the first uploaded image as featured
+                            $is_featured = ($key === 0 && !$has_featured) ? 1 : 0;
 
+                            // Insert image record into the database
                             $imageQuery = "INSERT INTO service_images (image_path, service_id, is_featured) 
                                            VALUES (:image_path, :service_id, :is_featured)";
                             $imageStmt = $pdo->prepare($imageQuery);
                             $imageStmt->execute([
                                 ':image_path' => $fileName,
-                                ':service_id' => $ad_id,
+                                ':service_id' => $service_id,
                                 ':is_featured' => $is_featured,
                             ]);
                         }
                     }
                 }
-
-
+                
                 $data = ['success' => true, 'message' => 'Updated'];
                 echo json_encode($data);
             } 

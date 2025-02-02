@@ -8,17 +8,13 @@ require_once '../include/error-handler.php';
 require_once '../include/input-cleaner.php';
 require_once '../include/email-sender.php';
 
-// Redirect logged-in user to index page
-if (isset($_SESSION['user_id'])) 
-{
-    header("Location: " . BASE_URL . "index.php");
-    exit();
-}
+// Redirect if user has already logged in
+require_once '../access-control/login-access-controller.php'; 
 
 // CSRF Token
 if (empty($_SESSION['csrf_token'])) 
 {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32)); // Generate a new token
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(64)); // Generate a new token
 }
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -50,8 +46,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
     $errors = [];
 
     // Clean inputs using your input-cleaner function
-    $fname = sanitizeInput($_POST['signup_fname']);
-    $lname = sanitizeInput($_POST['signup_lname']);
+    $fname = ucfirst(sanitizeInput($_POST['signup_fname']));
+    $lname = ucfirst(sanitizeInput($_POST['signup_lname']));
     $phone = sanitizeInput($_POST['signup_phone']);
     $email = strtolower(sanitizeInput($_POST['signup_email']));
     $password = sanitizeInput($_POST['signup_password']);
@@ -136,7 +132,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
         try 
         {
             // Generate a unique verification token and expiration time
-            $verificationToken = bin2hex(random_bytes(32));
+            $verificationToken = bin2hex(random_bytes(64));
             $expiration = time() + 60 * 5; // (5 minutes)
 
             $query = "INSERT INTO users (first_name, last_name, phone, email, password, verification_token, token_expiration) VALUES (:fname, :lname, :phone, :email, :password, :token, :expiration)";
@@ -158,18 +154,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
             // Prepare and send verification email
             $verificationLink = BASE_URL . "account/verify-email.php?token=" . $verificationToken;
 
-            sendVerificationEmail($email, $fname, $verificationLink);
+            $subject = "Email verification";
+
+            $body = "
+                <p>Dear $fname,</p>
+                <p>Please click on the link below to verify your email:</p>
+                <p><a href='$verificationLink'>$verificationLink</a></p>
+                <p>The link will expire in next 15 minutes.</p>
+                <p>Thanks,</p>
+                <p>Your Website Team</p>";
+
+            $altBody = "Please click on the link below to verify your email: $verificationLink. The link will expire in next 15 minutes.";
+
+            sendVerificationEmail($subject, $body, $altBody, $email, $fname);
 
             $message_type = 
-               '<h4>Thank you for registering.</h4>
+               '<h3>Thank you for registering.</h3>
                 <p>
                     We have sent a verification link to <strong>' . $email . '</strong>. Please check your inbox or spam folder to verify your email.
                 </p>';
-
+                
+            unset($_SESSION['csrf_token']); // Remove CSRF token after success
             $_SESSION['user_id'] = $user_id; 
             $_SESSION['message_type'] = $message_type;
             $_SESSION['show_resend_button'] = true;
-            header("Location:" . BASE_URL . "account/message-output-manager.php");
+            header("Location:" . BASE_URL . "account/account-message-output.php");
             exit();
         } 
         catch (PDOException $e) 
@@ -190,7 +199,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
         <form method="POST" enctype="multipart/form-data" id="signup_form">
 
             <!-- CSRF Token -->
-            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+            <div class="form-group">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                <div id="csrf_token_error" class="error">
+                    <?php echo $errorMessages['csrf_token']; ?>
+                </div>
+            </div>
 
             <!-- First Name -->
             <div class="form-group">
@@ -265,13 +279,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup_submit']))
 
             <!-- Submit -->
             <div class="form-group">
-                <button type="submit" name="signup_submit" id="login_submit">Submit</button>
+                <button type="submit" name="signup_submit" id="signup_submit">Submit</button>
             </div>
 
             <!-- Links -->
             <div class="form-links">
-                <p>Already have an account? <a href="<?php echo BASE_URL; ?>account/login.php">Login here</a>.</p>
-                <p><a href="<?php echo BASE_URL; ?>account/forgot-password.php">Forgot your password?</a></p>
+                <p>
+                    Already have an account? <a href="<?php echo BASE_URL; ?>account/login.php">Login here</a><span> | </span>
+                    <a href="<?php echo BASE_URL; ?>account/forgot-password.php">Forgot your password?</a>
+                </p>
             </div>
         </form>
     </div>
@@ -361,7 +377,7 @@ document.addEventListener("DOMContentLoaded", function ()
         if (isValid) 
         {
             submitButton.disabled = true;
-            submitButton.style.cursor: 'notAllowed';
+            //submitButton.style.cursor: 'notAllowed';
         }
         
     });

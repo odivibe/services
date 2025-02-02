@@ -40,7 +40,7 @@ $searchTarget = BASE_URL . "search.php?query={search_term_string}";
 <?php require_once 'include/header.php'; ?>
 
 
-    <section class="hero-section">
+    <div class="hero-section">
         <div class="hero-image">
             <img src="<?php echo BASE_URL; ?>images/skill-worker.jpg" alt="People Collaborating on Services">
         </div>
@@ -69,7 +69,7 @@ $searchTarget = BASE_URL . "search.php?query={search_term_string}";
 
             </div>
         </div>
-    </section>
+    </div>
 
 <main class="body-container">
 

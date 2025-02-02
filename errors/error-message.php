@@ -2,7 +2,7 @@
 session_start();
 require_once '../include/config.php';
 
-    $showMessage = isset($_SESSION['show_message'] )? $_SESSION['show_message'] : 'An unknown error occurred.' ;
+    $showMessage = isset($_SESSION['show_message'] )? $_SESSION['show_message'] : "Unexpected issue encountered. Try again." ;
     unset($_SESSION['show_message']);
 ?>
 

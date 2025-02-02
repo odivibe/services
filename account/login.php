@@ -8,27 +8,26 @@ require_once '../include/error-handler.php';
 require_once '../include/input-cleaner.php';
 require_once '../include/email-sender.php';
 
-// Redirect logged-in user to index page
-if (isset($_SESSION['user_id'])) 
-{
-    header("Location: " . BASE_URL . "index.php");
-    exit();
-}
+// Redirect if user has already logged in
+require_once '../access-control/login-access-controller.php';
 
-$error = '';
+$errors = [];
 
 // Generate CSRF Token for the form
 if (empty($_SESSION['csrf_token'])) 
 {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(64));
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') 
 {
     // Validate CSRF token
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) 
     {
-        $error = 'Invalid form submission. Please try again.';
+        $technicalDetails = "Invalid form submission: " . $_SERVER['REMOTE_ADDR'];
+        handleError("Invalid form submission. Please try again.", $technicalDetails);
+
+        $errors["login-errors"] = "Invalid form submission. Please try again.";
     } 
     else 
     {
@@ -36,14 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit']))
         $password = sanitizeInput($_POST['login_password']);
 
         // Fetch user from database
-        $stmt = $pdo->prepare("SELECT id, email, password, email_verified, first_name, verification_token, token_expiration FROM users WHERE email = :email");
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email");
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $userResult = $stmt->fetch();
 
         if (!$userResult) 
         {
-            $error = 'Invalid email or password.';
+            $errors["login-errors"] = 'Invalid email or password.';
         } 
         else 
         {
@@ -54,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit']))
                 if (time() > $userResult['token_expiration']) 
                 {
                     // Generate new token and expiry date
-                    $verificationToken = bin2hex(random_bytes(32));
+                    $verificationToken = bin2hex(random_bytes(64));
                     $expiry = time() + (60 * 5); // 5 minutes
                     $fname = $userResult['first_name'];
 
@@ -70,17 +69,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit']))
                         // Prepare and send verification email
                         $verificationLink = BASE_URL . "account/verify-email.php?token=" . $verificationToken;
 
-                        sendVerificationEmail($email, $fname, $verificationLink);
+                        $subject = "Email verification";
+
+                        $body = "
+                            <p>Dear $fname,</p>
+                            <p>Please click on the link below to verify your email:</p>
+                            <p><a href='$verificationLink'>$verificationLink</a></p>
+                            <p>The link will expire in next 15 minutes.</p>
+                            <p>Thanks,</p>
+                            <p>Your Website Team</p>";
+
+                        $altBody = "Please click on the link below to verify your email: $verificationLink. The link will expire in next 30 minutes.";
+
+                        sendVerificationEmail($subject, $body, $altBody, $email, $fname);
 
                         $message_type = 
-                            '<h4>Email resent</h4>
+                            '<h3>Email resent</h3>
                             <p>
                                 Verification token has been resend to your email, <strong>' . 
                                 $email . '</strong>. Please check your inbox or spam folder to verify your email.
                             </p>';
 
                         $_SESSION['message_type'] = $message_type;
-                        header("Location: " . BASE_URL . "account/message-output-manager.php");
+                        header("Location: " . BASE_URL . "account/account-message-output.php");
                         exit();
                     } 
                     catch (Exception $e) 
@@ -91,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit']))
                 else 
                 {
                     $_SESSION['message_type'] = 'A verification email was recently sent. Please check your inbox.';
-                    header("Location: " . BASE_URL . "account/message-output-manager.php");
+                    header("Location: " . BASE_URL . "account/account-message-output.php");
                     exit();
                 }
             }
@@ -99,15 +110,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit']))
             // Verify password
             if (!password_verify($password, $userResult['password'])) 
             {
-                $error = 'Invalid email or password.';
+                $errors["login-errors"] = 'Invalid email or password.';
             }
 
             // Successful login
-            if (empty($error)) 
+            if (empty($errors)) 
             {
                 session_regenerate_id(true); // Regenerate session ID
                 $_SESSION['user_id'] = $userResult['id'];
-                $_SESSION['logged_in'] = true;
+                $_SESSION['has_logged_in'] = true;
+                unset($_SESSION['csrf_token']); // Remove CSRF token after success
 
                 // Redirect to home page
                 header("Location: " . BASE_URL . "index.php");
@@ -125,12 +137,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit']))
     <div class="form-container">
         <h1>Login</h1>
         <form method="POST" enctype="multipart/form-data">
+            
             <!-- Error Message -->
-            <?php if (!empty($error)): ?>
-                <div class="form-group error">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
+            <div class="form-group error">
+                <?php echo $errors["login-errors"] ?? ''; ?>
+            </div>
+
+            <!-- CSRF Token -->
+            <div class="form-group">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+            </div>
 
             <!-- Email Input -->
             <div class="form-group">
@@ -143,9 +159,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit']))
                 <label for="login_password">Password: <span class="required">*</span></label>
                 <input type="password" name="login_password" id="login_password" placeholder="Enter password" required>
             </div>
-
-            <!-- CSRF Token -->
-            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
             <!-- Remember Me -->
             <div class="form-group remember-me">

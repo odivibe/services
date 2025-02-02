@@ -86,6 +86,15 @@ $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h1>Edit Service</h1>
         <form method="POST" enctype="multipart/form-data" id="edit-service-form">
 
+            <!-- CSRF Token -->
+            <div class="form-group">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                <div id="csrf_token_error" class="error">
+                    <?php echo $errorMessages['csrf_token']; ?>
+                </div>
+            </div>
+
+            <!-- Service id -->
             <input type="hidden" name="service_id" value="<?= $ad['id'] ?>">
 
             <!-- Form Error -->
@@ -179,19 +188,6 @@ $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div id="lga-error" class="error-message"></div>
             </div>
 
-            <!-- Existing Images 
-            <div class="form-group">
-                <div class="image-preview-wrapper">
-                    <?php //foreach ($images as $image): ?>
-                        <div id="image-<?//= $image['id']; ?>">
-                            <img src="<?//= BASE_URL . 'uploads/services-images/' . $image['image_path'] ?>" 
-                                alt="Ad Image">
-                            <span class="delete-existing-image" data-id="<?//= $image['id']; ?>">X</span>
-                        </div>
-                    <?php //endforeach; ?>
-                </div>
-            </div>-->
-
             <!-- Image Preview -->
             <div class="form-group">
                 <div id="image-preview-container" class="image-preview-wrapper"></div>
@@ -270,10 +266,8 @@ $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
         });
     }*/
-</script>
 
     
-<script>
 document.addEventListener('DOMContentLoaded', function () 
 {
     const formError = document.getElementById('form-error');
