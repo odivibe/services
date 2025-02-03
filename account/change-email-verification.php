@@ -8,7 +8,6 @@ require_once '../include/error-handler.php';
 if (isset($_GET['token'])) 
 {
     $token = $_GET['token'];
-    $pending = 'pending';
 
     // Check if token exists and is still valid
     $stmt = $pdo->prepare("SELECT * FROM email_change_requests WHERE verification_token = :verification_token");
@@ -39,15 +38,10 @@ if (isset($_GET['token']))
         $message_type = 
             '<h3>Token has expired</h3>
             <p>The verification link has expired.</p>';
-
-        $_SESSION['show_resend_button'] = true;
-
+        //$_SESSION['show_resend_button'] = true; // this code is wrong
         $_SESSION['message_type'] = $message_type;
-
         $_SESSION['user_id'] = $user_id;
-
         header("Location: " . BASE_URL . "account/account-message-output.php");
-
         exit();
     }
 
@@ -63,10 +57,13 @@ if (isset($_GET['token']))
     $stmt->bindParam(':verification_token', $token, PDO::PARAM_STR);
     $stmt->execute();
 
-    $message_type = "Your email has been changed!";
+    session_destroy(); // Destroy session
+    session_start(); // Restart session for a clean state
 
-    //header("Location: " . BASE_URL . "account/account-message-output.php");
-    //exit();
+    $message_type = 'Your email has been changed! Login with the new <a href="'. BASE_URL .'account/login.php" >email here</a>';
+    $_SESSION['message_type'] = $message_type;
+    header("Location: " . BASE_URL . "account/account-message-output.php");
+    exit();
 }
 else 
 {
@@ -74,9 +71,7 @@ else
     $message_type = 
         '<h3>Invalid token</h3>
         <p>The verification token is invalid. Please check your link.</p>';
-
     $_SESSION['message_type'] = $message_type;
-    
     header("Location: " . BASE_URL . "account/account-message-output.php");
     exit();
 }

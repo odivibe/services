@@ -16,6 +16,8 @@ if (!isset($_SESSION['user_id']))
     exit();
 }
 
+$user_id = $_SESSION['user_id'];
+
 $errors = [];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST")  
@@ -47,8 +49,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
         }
     }
 
-    
-
     try 
     {
         // Check if email already Exists in users table
@@ -66,95 +66,110 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
         exit();
     }
 
-    /*if (empty($password)) 
+    if (empty($password)) 
     {
         $errors['password'] = 'Password is required';
     }
-
-    try 
+    else
     {
-        // fetch user data
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
-        $stmt->execute([':id' => $user_id]);
-        $user = $stmt->fetch();
-
-        // Verify User Password
-        if (!$user || !password_verify($password, $user['password'])) 
+        try 
         {
-            $errors['password'] = "Incorrect password.";
-        }
-        else
-        {
-            $old_email = $user['email'];
-            $fname = $user['first_name'];
-            $lname = $user['last_name'];
-        }
+            // fetch user data
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
+            $stmt->execute([':id' => $user_id]);
+            $user = $stmt->fetch();
 
-    } 
-    catch (Exception $e) 
-    {
-        handleError('An error occurred. Please try again later.', $e);
-        exit();
-    }*/
+            // Verify User Password
+            if (!$user || !password_verify($password, $user['password'])) 
+            {
+                $errors['password'] = "Incorrect password.";
+            }
+            else
+            {
+                $old_email = $user['email'];
+                $fname = $user['first_name'];
+                $lname = $user['last_name'];
+            }
+
+        } 
+        catch (Exception $e) 
+        {
+            handleError('An error occurred. Please try again later.', $e);
+            exit();
+        }
+    }
     
     if (empty($errors)) 
     {
         // Generate a unique verification token and expiration time
-        /*$new_email_token = bin2hex(random_bytes(64));
+        $new_email_token = bin2hex(random_bytes(64));
         $expiration = time() + 60 * 5; // (5 minutes)
 
-        $query = "INSERT INTO email_change_requests (user_id, old_email, new_email, verification_token, token_expiration) VALUES (:user_id, :old_email, :new_email, :verification_token, :token_expiration)";
+        try 
+        {
+            $query = "INSERT INTO email_change_requests (user_id, old_email, new_email, verification_token, token_expiration) VALUES (:user_id, :old_email, :new_email, :verification_token, :token_expiration)";
             $stmt = $pdo->prepare($query);
 
             $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
             $stmt->bindParam(':old_email', $old_email, PDO::PARAM_STR);
             $stmt->bindParam(':new_email', $new_email, PDO::PARAM_STR);
-            $stmt->bindParam(':verification_token', $verificationToken, PDO::PARAM_STR);
+            $stmt->bindParam(':verification_token', $new_email_token, PDO::PARAM_STR);
             $stmt->bindParam(':token_expiration', $expiration, PDO::PARAM_STR);
             $stmt->execute();
 
-        //Email verification to new email
-        $verificationLink = BASE_URL . "account/change-email-verification.php?token=" . 
-            $new_email_token;
+            /*if ($stmt->execute()) 
+            {
+                echo json_encode(['success' => true, 'message' => "We sent verification emails to your old and new addresses. Follow the instructions there"]);
+            }*/
 
-        $subject = "Email verification";
+            //Email verification to new email
+            $verificationLink = BASE_URL . "account/change-email-verification.php?token=" . 
+                $new_email_token;
 
-        $name = $fname . " " . $lname;
+            $subject = "Email verification";
 
-        $body = "
-            <p>Dear $name,</p>
-            <p>Please click on the link below to verify your email.</p>
-            <p><a href='$verificationLink'>$verificationLink</a></p>
-            <p>The link will expire in 1 hour time.</p>
-            <p>Thanks.</p>";
+            $name = $fname . " " . $lname;
 
-        $altBody = "Dear $name,\n Please click on the link below to verify your email.\n $verificationLink. The link will expire in 1 hour time. \n Thanks.";
+            $body = "
+                <p>Dear $name,</p>
+                <p>Please click on the link below to verify your email.</p>
+                <p><a href='$verificationLink'>$verificationLink</a></p>
+                <p>The link will expire in 30 minutes.</p>
+                <p>Thanks.</p>";
 
-        sendVerificationEmail($subject, $body, $altBody, $email, $name);
+            $altBody = "Dear $name,\n Please click on the link below to verify your email.\n $verificationLink. The link will expire in 30 minutes. \n Thanks.";
 
-        
-        //Security email to old email
-        $emailLink = "mailto:" . SUPPORT_EMAIL; // support
+            sendVerificationEmail($subject, $body, $altBody, $new_email, $name);
 
-        $subject = "Security Alert: Email Change Attempt";
+            
+            //Security email to old email
+            $emailLink = SUPPORT_EMAIL; // support
 
-        $body = "
-            <p>Dear $name,</p>
-            <p>Your email has been changed to $old_email.</p>
-            <p>
-                If this wasn't you, click here to secure your account, 
-                <a href='$revert_link'>$revert_link</a>
-            </p>
-            <p>Thanks.</p>";
+            $subject = "Security Alert: Email Change Attempt";
 
-        $altBody = "
-            Dear $name, \n Your email has been changed to $old_email. \n If this wasn't you, click here to secure your account. \n $emailLink.";
+            $body = "
+                <p>Dear $name,</p>
+                <p>Your email has been changed to $new_email.</p>
+                <p>
+                    If this wasn't you, please contact us at 
+                    <a href='mailto:$emailLink'>$emailLink</a>
+                </p>
+                <p>Thanks.</p>";
 
-        sendVerificationEmail($subject, $body, $altBody, $email, $name);
+            $altBody = "
+                Dear $name, \n Your email has been changed to $new_email. \n If this wasn't you, please contact us at \n $emailLink.";
 
-        unset($_SESSION['csrf_token']);*/
+            sendVerificationEmail($subject, $body, $altBody, $old_email, $name);
 
-        echo json_encode(['success' => true, 'message' => "We sent verification emails to your old and new addresses. Follow the instructions there"]);
+            unset($_SESSION['csrf_token']);
+
+            echo json_encode(['success' => true, 'message' => "We sent verification emails to your old and new addresses. Follow the instructions there"]);
+        } 
+        catch (Exception $e) 
+        {
+            handleError('An error occurred. Please try again later.', $e);
+            exit();
+        }
     }
     else
     {

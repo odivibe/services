@@ -20,3 +20,5 @@
 
 [2025-02-02 06:13:31] Error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'expires_at' in 'field list' | File: C:\xampp\htdocs\classified\account\change-email.php | Line: 26
 
+[2025-02-02 18:03:25] Error: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'verification_token' cannot be null | File: C:\xampp\htdocs\classified\account\process-change-email.php | Line: 119
+

@@ -71,7 +71,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then(data => {
                     if (data.success) 
                     {
-                        displayArea.innerHTML += `<p style="color: green;">${data.message}</p>`;
+                        const messageOutput = document.getElementById("message-output");
+                        messageOutput.innerHTML = data.message;
+                        form.reset();
+
+                        /*setTimeout(() => {
+                            displayArea.innerHTML = "";
+                        }, 3000);*/
                     } 
                     else 
                     {
@@ -82,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             //displayErrorMessages(data.errors);
                             
                             // Re-enable the button after form submission is done
-                            submitButton.disabled = false;
+                            //submitButton.disabled = false;
                         }
                     }
                 })
@@ -90,7 +96,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     displayArea.innerHTML += "<p style='color: red;'>Error processing request.</p>";
 
                     // Re-enable the button after form submission is done
-                    submitButton.disabled = false;
+                    //submitButton.disabled = false;
+                })
+                .finally(() => {
+                    submitButton.disabled = false; // Re-enable button
+                    submitButton.textContent = "Submit"; // Reset button text
                 });
             });
         }
